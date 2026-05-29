@@ -1,78 +1,777 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VibeSense AI - Live Analytics Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VibeSense AI - Live Analytics Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #080c14;
+      --surface: #0d1422;
+      --surface2: #111b2e;
+      --border: rgba(99, 136, 255, 0.12);
+      --accent: #6c8fff;
+      --accent2: #a855f7;
+      --green: #22d3a0;
+      --red: #ff4d6a;
+      --amber: #f59e0b;
+      --text: #e2e8f8;
+      --muted: #5a6a8a;
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-display);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px; left: -200px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(108,143,255,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -200px; right: -200px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(168,85,247,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px;
+      height: 60px;
+      background: rgba(8,12,20,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-size: 18px; font-weight: 800; letter-spacing: -0.5px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .logo span { color: var(--accent2); }
+
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+
+    .live-pill {
+      display: flex; align-items: center; gap: 7px;
+      padding: 5px 14px; border-radius: 100px;
+      background: rgba(34,211,160,0.1);
+      border: 1px solid rgba(34,211,160,0.3);
+      font-size: 12px; font-weight: 600;
+      color: var(--green); font-family: var(--font-mono);
+    }
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green);
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    .btn-stream {
+      padding: 7px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-family: var(--font-display);
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-stream:hover { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+
+    /* MAIN LAYOUT */
+    main {
+      position: relative; z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 24px 48px;
+      display: flex; flex-direction: column; gap: 24px;
+    }
+
+    /* SECTION HEADER */
+    .section-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      color: var(--muted); text-transform: uppercase;
+      font-family: var(--font-mono);
+      margin-bottom: 12px;
+    }
+
+    /* CARDS ROW */
+    .cards-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      transition: border-color 0.3s, transform 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--card-accent, var(--accent));
+      opacity: 0.6;
+    }
+    .card:hover { border-color: rgba(99,136,255,0.3); transform: translateY(-2px); }
+
+    .card-label {
+      font-size: 10px; letter-spacing: 1.5px; font-weight: 700;
+      color: var(--muted); text-transform: uppercase;
+      font-family: var(--font-mono);
+      margin-bottom: 10px;
+    }
+    .card-value {
+      font-size: 36px; font-weight: 800; line-height: 1;
+      color: var(--card-color, var(--text));
+    }
+    .card-sub {
+      font-size: 12px; color: var(--muted); margin-top: 6px;
+      font-family: var(--font-mono);
+    }
+    .card-icon {
+      position: absolute; top: 20px; right: 20px;
+      font-size: 22px; opacity: 0.25;
+    }
+
+    /* MIDDLE ROW: chart + alerts */
+    .mid-row {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 16px;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .chart-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .chart-title { font-size: 15px; font-weight: 700; }
+    .chart-badge {
+      font-size: 11px; padding: 3px 10px; border-radius: 100px;
+      background: rgba(108,143,255,0.1);
+      color: var(--accent);
+      font-family: var(--font-mono); font-weight: 500;
+    }
+    .chart-wrap { height: 200px; }
+
+    /* ALERTS PANEL */
+    .alerts-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .alerts-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .alerts-title { font-size: 15px; font-weight: 700; }
+    .alerts-count {
+      font-family: var(--font-mono); font-size: 12px;
+      color: var(--muted);
+    }
+    .alerts-list {
+      display: flex; flex-direction: column; gap: 10px;
+      flex: 1; overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .alert-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      animation: slideIn 0.4s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(10px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .alert-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      margin-top: 4px; flex-shrink: 0;
+    }
+    .alert-dot.critical { background: var(--red); box-shadow: 0 0 8px var(--red); }
+    .alert-dot.warning { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+    .alert-dot.info { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .alert-text { font-size: 12.5px; line-height: 1.5; color: var(--text); font-family: var(--font-mono); }
+    .alert-time { font-size: 10px; color: var(--muted); margin-top: 2px; font-family: var(--font-mono); }
+
+    /* BOTTOM ROW */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* ZONE HEATMAP */
+    .zone-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .zone-list { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+    .zone-row { display: flex; flex-direction: column; gap: 6px; }
+    .zone-info { display: flex; justify-content: space-between; align-items: center; }
+    .zone-name { font-size: 13px; font-weight: 600; }
+    .zone-count { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+    .zone-bar-bg {
+      height: 6px; border-radius: 3px;
+      background: var(--surface2);
+      overflow: hidden;
+    }
+    .zone-bar {
+      height: 100%; border-radius: 3px;
+      transition: width 1s ease;
+    }
+
+    /* MUSIC CARD */
+    .music-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .music-visual {
+      display: flex; align-items: flex-end; gap: 4px;
+      height: 48px; margin: 20px 0 16px;
+    }
+    .bar-vis {
+      flex: 1; border-radius: 3px 3px 0 0;
+      background: linear-gradient(to top, var(--accent2), var(--accent));
+      animation: barAnim var(--dur, 0.8s) ease-in-out infinite alternate;
+      min-height: 4px;
+    }
+    @keyframes barAnim {
+      from { height: var(--min, 20%); }
+      to { height: var(--max, 80%); }
+    }
+    .music-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .music-sub { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+    .music-tag {
+      display: inline-block; margin-top: 12px;
+      padding: 4px 12px; border-radius: 100px;
+      background: rgba(168,85,247,0.12);
+      color: var(--accent2); font-size: 11px;
+      font-family: var(--font-mono); font-weight: 500;
+      border: 1px solid rgba(168,85,247,0.25);
+    }
+
+    /* SYSTEM STATUS */
+    .status-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .status-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+    .status-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--surface2);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .status-name { font-size: 13px; font-weight: 600; }
+    .status-badge {
+      font-family: var(--font-mono); font-size: 11px;
+      padding: 3px 10px; border-radius: 100px;
+    }
+    .status-badge.ok { background: rgba(34,211,160,0.12); color: var(--green); border: 1px solid rgba(34,211,160,0.25); }
+    .status-badge.warn { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+    .status-badge.err { background: rgba(255,77,106,0.12); color: var(--red); border: 1px solid rgba(255,77,106,0.25); }
+
+    /* MOOD HISTORY (mini chart row) */
+    .mood-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .mood-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px;
+    }
+    .mood-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .mood-chip {
+      padding: 4px 14px; border-radius: 100px;
+      font-size: 12px; font-weight: 600;
+      font-family: var(--font-mono);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      transition: all 0.3s;
+    }
+    .mood-chip.active { color: var(--text); border-color: var(--accent); background: rgba(108,143,255,0.12); }
+    .mood-wrap { height: 100px; }
+
+    /* LAST UPDATED */
+    .footer-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    }
+    .footer-bar span { display: flex; align-items: center; gap: 6px; }
+
+    /* ANOMALY FLAG */
+    .anomaly-banner {
+      display: none;
+      align-items: center; gap: 12px;
+      padding: 12px 20px;
+      background: rgba(255,77,106,0.08);
+      border: 1px solid rgba(255,77,106,0.3);
+      border-radius: 12px;
+      font-size: 13px; font-weight: 600;
+      color: var(--red);
+    }
+    .anomaly-banner.visible { display: flex; }
+    .anomaly-icon { font-size: 18px; animation: shake 0.5s infinite alternate; }
+    @keyframes shake {
+      from { transform: rotate(-5deg); }
+      to { transform: rotate(5deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .cards-row { grid-template-columns: repeat(2, 1fr); }
+      .mid-row { grid-template-columns: 1fr; }
+      .bottom-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .cards-row { grid-template-columns: 1fr 1fr; }
+      .bottom-row { grid-template-columns: 1fr; }
+      nav { padding: 0 16px; }
+      main { padding: 16px 12px 32px; }
+    }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
-    <nav class="border-b border-slate-800 bg-slate-950/50 backdrop-blur px-6 py-4">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold text-white">VibeSense <span class="text-purple-400">AI</span></h1>
-            <div class="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-300">Live Stream</div>
-        </div>
-    </nav>
+<body>
 
-    <main class="max-w-7xl mx-auto p-6 space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-slate-950 border border-slate-800 p-6 rounded-2xl">
-                <p class="text-slate-400 text-xs uppercase">Occupancy</p>
-                <h3 id="occupancy-val" class="text-5xl font-bold mt-4">0</h3>
-            </div>
-            <div class="bg-slate-950 border border-slate-800 p-6 rounded-2xl">
-                <p class="text-slate-400 text-xs uppercase">Store Mood</p>
-                <h3 id="vibe-val" class="text-3xl font-bold mt-5 text-purple-400">Loading...</h3>
-            </div>
-            <div class="bg-slate-950 border border-slate-800 p-6 rounded-2xl">
-                <p class="text-slate-400 text-xs uppercase">Audio</p>
-                <h3 id="music-val" class="text-lg font-medium mt-6 text-emerald-400">Syncing...</h3>
-            </div>
-        </div>
-        
-        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6">
-            <h2 class="text-lg font-bold mb-4">Live Alerts</h2>
-            <div id="alerts-container" class="space-y-3">
-                </div>
-        </div>
-    </main>
+<nav>
+  <div class="logo">VibeSense <span>AI</span></div>
+  <div class="nav-right">
+    <div class="live-pill"><div class="live-dot"></div>LIVE</div>
+    <button class="btn-stream" onclick="window.open('/api/v1/store/vibe','_blank')">Live Stream</button>
+  </div>
+</nav>
 
-    <script>
-        async function updateDashboard() {
-            try {
-                const res = await fetch("/api/v1/store/vibe");
-                const data = await res.json();
-                
-                // Update stats
-                document.getElementById("occupancy-val").innerText = data.current_occupancy;
-                document.getElementById("vibe-val").innerText = data.store_vibe;
-                document.getElementById("music-val").innerText = data.ambient_music;
+<main>
 
-                // Update Alerts
-                const container = document.getElementById("alerts-container");
-                if (data.realtime_alerts && data.realtime_alerts.length > 0) {
-                    container.innerHTML = ""; // Clear current list
-                    data.realtime_alerts.slice().reverse().forEach(alert => {
-                        const div = document.createElement("div");
-                        div.className = "bg-slate-900 border border-slate-800 p-3 rounded-lg text-sm text-slate-300";
-                        div.innerHTML = `💡 ${alert}`;
-                        container.appendChild(div);
-                    });
-                } else {
-                    container.innerHTML = `<p class="text-slate-500 text-sm italic">No active alerts.</p>`;
-                }
-            } catch (e) { 
-                console.error("Update error:", e); 
-            }
-        }
-        
-        // Refresh every 2 seconds
-        setInterval(updateDashboard, 2000);
-        updateDashboard();
-    </script>
+  <!-- ANOMALY BANNER -->
+  <div class="anomaly-banner" id="anomalyBanner">
+    <span class="anomaly-icon">⚠️</span>
+    <span>CRITICAL ANOMALY DETECTED — Store capacity threshold exceeded. Immediate floor staff intervention required.</span>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div>
+    <div class="section-label">Real-Time Metrics</div>
+    <div class="cards-row">
+      <div class="card" style="--card-accent:#6c8fff; --card-color:#6c8fff;">
+        <div class="card-icon">👥</div>
+        <div class="card-label">Occupancy</div>
+        <div class="card-value" id="occupancyVal">—</div>
+        <div class="card-sub" id="occupancySub">Fetching...</div>
+      </div>
+      <div class="card" style="--card-accent:#a855f7; --card-color:#a855f7;">
+        <div class="card-icon">✨</div>
+        <div class="card-label">Store Mood</div>
+        <div class="card-value" style="font-size:20px; padding-top:8px;" id="moodVal">Loading...</div>
+        <div class="card-sub" id="moodSub">Analyzing atmosphere</div>
+      </div>
+      <div class="card" style="--card-accent:#22d3a0; --card-color:#22d3a0;">
+        <div class="card-icon">🎵</div>
+        <div class="card-label">Audio</div>
+        <div class="card-value" style="font-size:15px; padding-top:8px; line-height:1.3;" id="audioVal">Syncing...</div>
+        <div class="card-sub">Ambient system</div>
+      </div>
+      <div class="card" style="--card-accent:#f59e0b; --card-color:#f59e0b;">
+        <div class="card-icon">🔔</div>
+        <div class="card-label">Active Alerts</div>
+        <div class="card-value" id="alertCount">0</div>
+        <div class="card-sub" id="alertStatus">No anomalies</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OCCUPANCY TREND + ALERTS -->
+  <div class="mid-row">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Occupancy Trend</div>
+        <div class="chart-badge">Last 20 readings</div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="occupancyChart"></canvas>
+      </div>
+    </div>
+    <div class="alerts-panel">
+      <div class="alerts-header">
+        <div class="alerts-title">Live Alerts</div>
+        <div class="alerts-count" id="alertCountLabel">0 alerts</div>
+      </div>
+      <div class="alerts-list" id="alertsList">
+        <div style="color:var(--muted);font-size:13px;font-family:var(--font-mono);padding:20px 0;text-align:center;">Monitoring for anomalies...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOOD HISTORY CHART -->
+  <div class="mood-row">
+    <div class="mood-header">
+      <div>
+        <div class="section-label" style="margin-bottom:4px;">Vibe History</div>
+        <div style="font-size:15px;font-weight:700;">Store Atmosphere Over Time</div>
+      </div>
+      <div class="mood-chips">
+        <div class="mood-chip active" id="chip-cozy">Cozy & Premium</div>
+        <div class="mood-chip" id="chip-moderate">Moderate & Buzzing</div>
+        <div class="mood-chip" id="chip-energetic">Energetic & Crowded</div>
+      </div>
+    </div>
+    <div class="mood-wrap">
+      <canvas id="vibeChart"></canvas>
+    </div>
+  </div>
+
+  <!-- ZONE HEATMAP + MUSIC + SYSTEM STATUS -->
+  <div class="bottom-row">
+
+    <div class="zone-card">
+      <div class="section-label" style="margin-bottom:4px;">Zone Activity</div>
+      <div style="font-size:15px;font-weight:700;">Floor Heatmap</div>
+      <div class="zone-list" id="zoneList">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <div class="music-card">
+      <div class="section-label" style="margin-bottom:4px;">Ambient System</div>
+      <div style="font-size:15px;font-weight:700;">Now Playing</div>
+      <div class="music-visual" id="musicVisual">
+        <!-- bars will be generated -->
+      </div>
+      <div class="music-title" id="musicTitle">Loading...</div>
+      <div class="music-sub" id="musicSub">Matching current store vibe</div>
+      <div class="music-tag" id="musicTag">—</div>
+    </div>
+
+    <div class="status-card">
+      <div class="section-label" style="margin-bottom:4px;">Infrastructure</div>
+      <div style="font-size:15px;font-weight:700;">System Health</div>
+      <div class="status-list">
+        <div class="status-row">
+          <div class="status-name">YOLO Pipeline</div>
+          <div class="status-badge ok" id="statusYolo">HEALTHY</div>
+        </div>
+        <div class="status-row">
+          <div class="status-name">FastAPI Backend</div>
+          <div class="status-badge ok" id="statusApi">ONLINE</div>
+        </div>
+        <div class="status-row">
+          <div class="status-name">Vibe Engine</div>
+          <div class="status-badge ok" id="statusVibe">RUNNING</div>
+        </div>
+        <div class="status-row">
+          <div class="status-name">Anomaly Detector</div>
+          <div class="status-badge ok" id="statusAnomaly">CLEAR</div>
+        </div>
+        <div class="status-row">
+          <div class="status-name">Last Inference</div>
+          <div class="status-badge ok" id="statusTime">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-bar">
+    <span>🔄 Auto-refresh every 3s</span>
+    <span>Last updated: <span id="lastUpdated">—</span></span>
+    <span>VibeSense AI · Purplle Tech Challenge 2026</span>
+  </div>
+
+</main>
+
+<script>
+// ==================== CHART SETUP ====================
+
+const chartDefaults = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false }, tooltip: {
+    backgroundColor: '#111b2e', borderColor: 'rgba(99,136,255,0.3)',
+    borderWidth: 1, titleColor: '#e2e8f8', bodyColor: '#5a6a8a',
+    titleFont: { family: 'DM Mono' }, bodyFont: { family: 'DM Mono', size: 11 }
+  }},
+  scales: {
+    x: { display: false },
+    y: {
+      grid: { color: 'rgba(99,136,255,0.07)', drawBorder: false },
+      ticks: { color: '#5a6a8a', font: { family: 'DM Mono', size: 10 }, maxTicksLimit: 5 },
+      border: { display: false }
+    }
+  }
+};
+
+// Occupancy Line Chart
+const occCtx = document.getElementById('occupancyChart').getContext('2d');
+const occData = Array(20).fill(0);
+const occGrad = occCtx.createLinearGradient(0, 0, 0, 200);
+occGrad.addColorStop(0, 'rgba(108,143,255,0.3)');
+occGrad.addColorStop(1, 'rgba(108,143,255,0)');
+
+const occChart = new Chart(occCtx, {
+  type: 'line',
+  data: {
+    labels: Array(20).fill(''),
+    datasets: [{
+      data: occData,
+      borderColor: '#6c8fff',
+      borderWidth: 2.5,
+      pointRadius: 0,
+      pointHoverRadius: 5,
+      pointHoverBackgroundColor: '#6c8fff',
+      fill: true,
+      backgroundColor: occGrad,
+      tension: 0.4
+    }]
+  },
+  options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 15 } } }
+});
+
+// Vibe History Bar Chart
+const vibeCtx = document.getElementById('vibeChart').getContext('2d');
+const vibeData = Array(20).fill(1);
+const vibeChart = new Chart(vibeCtx, {
+  type: 'bar',
+  data: {
+    labels: Array(20).fill(''),
+    datasets: [{
+      data: vibeData,
+      backgroundColor: vibeData.map(v => vibeColor(v)),
+      borderRadius: 4,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    ...chartDefaults,
+    scales: {
+      x: { display: false },
+      y: {
+        display: false, min: 0, max: 3,
+        grid: { display: false }, border: { display: false }
+      }
+    }
+  }
+});
+
+function vibeColor(v) {
+  if (v === 3) return 'rgba(255,77,106,0.75)';
+  if (v === 2) return 'rgba(245,158,11,0.75)';
+  return 'rgba(108,143,255,0.65)';
+}
+
+// ==================== ZONE SETUP ====================
+
+const zones = [
+  { name: 'Checkout Zone', max: 15, color: '#6c8fff' },
+  { name: 'Cosmetics Section', max: 15, color: '#a855f7' },
+  { name: 'Aisle 3', max: 15, color: '#22d3a0' },
+  { name: 'Entrance / Exit', max: 15, color: '#f59e0b' },
+  { name: 'Skincare Corner', max: 15, color: '#ff4d6a' },
+];
+
+function buildZones() {
+  const container = document.getElementById('zoneList');
+  container.innerHTML = zones.map((z, i) => `
+    <div class="zone-row">
+      <div class="zone-info">
+        <div class="zone-name">${z.name}</div>
+        <div class="zone-count" id="zone-count-${i}">—</div>
+      </div>
+      <div class="zone-bar-bg">
+        <div class="zone-bar" id="zone-bar-${i}" style="background:${z.color}; width:0%;"></div>
+      </div>
+    </div>
+  `).join('');
+}
+buildZones();
+
+function buildMusicBars() {
+  const container = document.getElementById('musicVisual');
+  container.innerHTML = Array(18).fill('').map((_, i) => {
+    const minH = 15 + Math.random() * 20;
+    const maxH = 50 + Math.random() * 50;
+    const dur = 0.5 + Math.random() * 0.8;
+    const delay = Math.random() * 0.5;
+    return `<div class="bar-vis" style="--min:${minH}%; --max:${maxH}%; --dur:${dur}s; animation-delay:${delay}s;"></div>`;
+  }).join('');
+}
+buildMusicBars();
+
+// ==================== DATA FETCH ====================
+
+let alertHistory = [];
+let vibeHistory = [];
+let lastTimestamp = '';
+
+const MUSIC_MAP = {
+  'Cozy & Premium': { title: 'Soft Acoustic Melodies', sub: 'Warm background ambience', tag: '🎸 Acoustic' },
+  'Moderate & Buzzing': { title: 'Lo-Fi Indie Grooves', sub: 'Mid-energy atmosphere blend', tag: '🎧 Lo-Fi' },
+  'Energetic & Crowded': { title: 'Upbeat Synth-Pop', sub: 'High-energy crowd mode', tag: '⚡ Synth-Pop' },
+};
+
+const VIBE_NUM = {
+  'Cozy & Premium': 1,
+  'Moderate & Buzzing': 2,
+  'Energetic & Crowded': 3,
+};
+
+async function fetchData() {
+  try {
+    const res = await fetch('/api/v1/store/vibe');
+    if (!res.ok) throw new Error('API error');
+    const d = await res.json();
+
+    const count = d.current_occupancy ?? 0;
+    const vibe = d.store_vibe ?? 'Cozy & Premium';
+    const music = d.ambient_music ?? '';
+    const alerts = d.realtime_alerts ?? [];
+
+    // Stat cards
+    document.getElementById('occupancyVal').textContent = count;
+    document.getElementById('occupancySub').textContent =
+      count > 10 ? '🔴 High capacity' : count > 5 ? '🟡 Moderate traffic' : '🟢 Low traffic';
+    document.getElementById('moodVal').textContent = vibe;
+    document.getElementById('moodSub').textContent = `Updated just now`;
+    document.getElementById('audioVal').textContent = music;
+    document.getElementById('alertCount').textContent = alerts.length;
+    document.getElementById('alertStatus').textContent = alerts.length > 0 ? '⚠️ Review needed' : '✅ All clear';
+
+    // Anomaly banner
+    const isAnomaly = count > 10;
+    document.getElementById('anomalyBanner').classList.toggle('visible', isAnomaly);
+
+    // System status
+    document.getElementById('statusAnomaly').textContent = isAnomaly ? 'TRIGGERED' : 'CLEAR';
+    document.getElementById('statusAnomaly').className = 'status-badge ' + (isAnomaly ? 'err' : 'ok');
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    document.getElementById('statusTime').textContent = timeStr;
+    document.getElementById('lastUpdated').textContent = timeStr;
+
+    // Occupancy chart
+    occData.push(count); occData.shift();
+    occChart.data.datasets[0].data = [...occData];
+    occChart.update('none');
+
+    // Vibe chart
+    const vibeNum = VIBE_NUM[vibe] || 1;
+    vibeData.push(vibeNum); vibeData.shift();
+    vibeChart.data.datasets[0].data = [...vibeData];
+    vibeChart.data.datasets[0].backgroundColor = vibeData.map(v => vibeColor(v));
+    vibeChart.update('none');
+
+    // Mood chips
+    ['cozy','moderate','energetic'].forEach(k => {
+      document.getElementById(`chip-${k}`).classList.remove('active');
+    });
+    if (vibe === 'Cozy & Premium') document.getElementById('chip-cozy').classList.add('active');
+    else if (vibe === 'Moderate & Buzzing') document.getElementById('chip-moderate').classList.add('active');
+    else document.getElementById('chip-energetic').classList.add('active');
+
+    // Music card
+    const mInfo = MUSIC_MAP[vibe] || MUSIC_MAP['Cozy & Premium'];
+    document.getElementById('musicTitle').textContent = mInfo.title;
+    document.getElementById('musicSub').textContent = mInfo.sub;
+    document.getElementById('musicTag').textContent = mInfo.tag;
+
+    // Zone simulation (distributed from total count)
+    zones.forEach((z, i) => {
+      const zCount = Math.max(0, Math.round(count * (0.1 + Math.random() * 0.35)));
+      const pct = Math.min(100, Math.round((zCount / z.max) * 100));
+      document.getElementById(`zone-count-${i}`).textContent = `${zCount} people`;
+      document.getElementById(`zone-bar-${i}`).style.width = pct + '%';
+    });
+
+    // Alerts
+    const alertsList = document.getElementById('alertsList');
+    const newAlerts = alerts.filter(a => !alertHistory.includes(a));
+    alertHistory = alerts;
+
+    if (alerts.length === 0) {
+      alertsList.innerHTML = `<div style="color:var(--muted);font-size:13px;font-family:var(--font-mono);padding:20px 0;text-align:center;">✅ No active alerts</div>`;
+    } else {
+      alertsList.innerHTML = alerts.map(a => {
+        const isCrit = a.toLowerCase().includes('critical');
+        const isFloor = a.toLowerCase().includes('floor');
+        const dotClass = isCrit ? 'critical' : isFloor ? 'warning' : 'info';
+        return `
+          <div class="alert-item">
+            <div class="alert-dot ${dotClass}"></div>
+            <div>
+              <div class="alert-text">${a}</div>
+              <div class="alert-time">${timeStr}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    document.getElementById('alertCountLabel').textContent = `${alerts.length} alert${alerts.length !== 1 ? 's' : ''}`;
+
+  } catch (e) {
+    document.getElementById('occupancySub').textContent = 'Connection error';
+    document.getElementById('statusApi').textContent = 'OFFLINE';
+    document.getElementById('statusApi').className = 'status-badge err';
+  }
+}
+
+fetchData();
+setInterval(fetchData, 3000);
+</script>
 </body>
 </html>
