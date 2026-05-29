@@ -491,13 +491,28 @@
 
     <div class="music-card">
       <div class="section-label" style="margin-bottom:4px;">Ambient System</div>
-      <div style="font-size:15px;font-weight:700;">Now Playing</div>
+      <div style="font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:space-between;">
+        Now Playing
+        <button id="soundToggleBtn" onclick="toggleSound()" style="
+          padding:5px 14px; border-radius:8px; border:1px solid var(--border);
+          background:var(--surface2); color:var(--muted); font-family:var(--font-mono);
+          font-size:11px; cursor:pointer; transition:all 0.2s;
+        ">▶ Enable Sound</button>
+      </div>
       <div class="music-visual" id="musicVisual">
         <!-- bars will be generated -->
       </div>
       <div class="music-title" id="musicTitle">Loading...</div>
       <div class="music-sub" id="musicSub">Matching current store vibe</div>
-      <div class="music-tag" id="musicTag">—</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:12px;">
+        <div class="music-tag" id="musicTag">—</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+          <span style="font-size:11px;color:var(--muted);font-family:var(--font-mono);">Vol</span>
+          <input type="range" id="volumeSlider" min="0" max="100" value="40"
+            oninput="setVolume(this.value)"
+            style="width:70px;accent-color:var(--accent2);cursor:pointer;" />
+        </div>
+      </div>
     </div>
 
     <div class="status-card">
@@ -538,6 +553,252 @@
 </main>
 
 <script>
+// ==================== SOUND ENGINE (Web Audio API) ====================
+
+let audioCtx = null;
+let masterGain = null;
+let ambientNodes = [];
+let soundEnabled = false;
+let currentVibe = '';
+let alertCooldown = false;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.4;
+  masterGain.connect(audioCtx.destination);
+}
+
+function setVolume(val) {
+  if (masterGain) masterGain.gain.setTargetAtTime(val / 100, audioCtx.currentTime, 0.1);
+}
+
+function toggleSound() {
+  if (!soundEnabled) {
+    initAudio();
+    soundEnabled = true;
+    document.getElementById('soundToggleBtn').textContent = '🔊 Sound ON';
+    document.getElementById('soundToggleBtn').style.color = 'var(--green)';
+    document.getElementById('soundToggleBtn').style.borderColor = 'rgba(34,211,160,0.4)';
+    playAmbient(currentVibe || 'Cozy & Premium');
+  } else {
+    stopAmbient();
+    soundEnabled = false;
+    document.getElementById('soundToggleBtn').textContent = '▶ Enable Sound';
+    document.getElementById('soundToggleBtn').style.color = 'var(--muted)';
+    document.getElementById('soundToggleBtn').style.borderColor = 'var(--border)';
+  }
+}
+
+function stopAmbient() {
+  ambientNodes.forEach(n => { try { n.stop(); } catch(e){} });
+  ambientNodes = [];
+}
+
+// Generate ambient music using oscillators + noise
+function playAmbient(vibe) {
+  if (!audioCtx || !soundEnabled) return;
+  stopAmbient();
+
+  if (vibe === 'Cozy & Premium') {
+    // Warm acoustic feel: soft sine chords + gentle noise
+    playChord([261.63, 329.63, 392.00], 'sine', 0.06, true);   // C major — warm
+    playChord([220.00, 277.18, 329.63], 'sine', 0.04, true, 8); // Am — resolving
+    playBrownNoise(0.015);
+  } else if (vibe === 'Moderate & Buzzing') {
+    // Lo-fi: slightly detuned, triangle waves + pink noise
+    playChord([220.00, 261.63, 329.63], 'triangle', 0.07, true);
+    playChord([174.61, 220.00, 261.63], 'triangle', 0.05, true, 6);
+    playPinkNoise(0.018);
+    playLowBeat(1.8, 0.08);
+  } else if (vibe === 'Energetic & Crowded') {
+    // Upbeat synth: sawtooth + square harmonics + white noise
+    playChord([329.63, 415.30, 493.88], 'sawtooth', 0.05, true);
+    playChord([261.63, 349.23, 440.00], 'square', 0.03, true, 4);
+    playWhiteNoise(0.012);
+    playLowBeat(2.4, 0.12);
+    playHighBeat(4.8, 0.04);
+  }
+}
+
+function playChord(freqs, type, gain, loop, switchAfter) {
+  if (!audioCtx) return;
+  freqs.forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+
+    osc.type = type;
+    osc.frequency.value = freq;
+    // Slight detune for warmth
+    osc.detune.value = (Math.random() - 0.5) * 8;
+
+    filter.type = 'lowpass';
+    filter.frequency.value = 800 + Math.random() * 400;
+
+    g.gain.value = 0;
+    g.gain.setTargetAtTime(gain, audioCtx.currentTime + i * 0.3, 0.5);
+
+    osc.connect(filter);
+    filter.connect(g);
+    g.connect(masterGain);
+    osc.start();
+
+    // Slow fade in/out tremolo
+    scheduleTremolo(g, gain, 3 + Math.random() * 4);
+
+    ambientNodes.push(osc);
+    if (switchAfter) {
+      setTimeout(() => {
+        g.gain.setTargetAtTime(0, audioCtx.currentTime, 1);
+        setTimeout(() => { try { osc.stop(); } catch(e){} }, 3000);
+      }, switchAfter * 1000);
+    }
+  });
+}
+
+function scheduleTremolo(gainNode, baseGain, period) {
+  const lfo = audioCtx.createOscillator();
+  const lfoGain = audioCtx.createGain();
+  lfo.frequency.value = 1 / period;
+  lfoGain.gain.value = baseGain * 0.3;
+  lfo.connect(lfoGain);
+  lfoGain.connect(gainNode.gain);
+  lfo.start();
+  ambientNodes.push(lfo);
+}
+
+function playBrownNoise(vol) {
+  const bufSize = audioCtx.sampleRate * 4;
+  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < bufSize; i++) {
+    const w = Math.random() * 2 - 1;
+    data[i] = (last + 0.02 * w) / 1.02;
+    last = data[i];
+    data[i] *= 3.5;
+  }
+  playNoiseBuffer(buf, vol);
+}
+
+function playPinkNoise(vol) {
+  const bufSize = audioCtx.sampleRate * 4;
+  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i = 0; i < bufSize; i++) {
+    const w = Math.random() * 2 - 1;
+    b0 = 0.99886*b0 + w*0.0555179; b1 = 0.99332*b1 + w*0.0750759;
+    b2 = 0.96900*b2 + w*0.1538520; b3 = 0.86650*b3 + w*0.3104856;
+    b4 = 0.55000*b4 + w*0.5329522; b5 = -0.7616*b5 - w*0.0168980;
+    data[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362) * 0.11;
+    b6 = w * 0.115926;
+  }
+  playNoiseBuffer(buf, vol);
+}
+
+function playWhiteNoise(vol) {
+  const bufSize = audioCtx.sampleRate * 2;
+  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+  playNoiseBuffer(buf, vol);
+}
+
+function playNoiseBuffer(buf, vol) {
+  const src = audioCtx.createBufferSource();
+  const g = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+  src.buffer = buf;
+  src.loop = true;
+  filter.type = 'bandpass';
+  filter.frequency.value = 400;
+  filter.Q.value = 0.5;
+  g.gain.value = vol;
+  src.connect(filter);
+  filter.connect(g);
+  g.connect(masterGain);
+  src.start();
+  ambientNodes.push(src);
+}
+
+function playLowBeat(bpm, vol) {
+  const interval = 60 / bpm;
+  let t = audioCtx.currentTime + 0.1;
+  const schedBeat = () => {
+    if (!soundEnabled) return;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.value = 80;
+    osc.type = 'sine';
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(t); osc.stop(t + 0.25);
+    t += interval;
+    setTimeout(schedBeat, (interval - 0.1) * 1000);
+  };
+  schedBeat();
+}
+
+function playHighBeat(bpm, vol) {
+  const interval = 60 / bpm;
+  let t = audioCtx.currentTime + 0.2;
+  const schedBeat = () => {
+    if (!soundEnabled) return;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.value = 600 + Math.random() * 200;
+    osc.type = 'square';
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(t); osc.stop(t + 0.06);
+    t += interval;
+    setTimeout(schedBeat, (interval - 0.05) * 1000);
+  };
+  schedBeat();
+}
+
+// ---- ALERT SOUNDS ----
+function playAlertSound(type) {
+  if (!audioCtx || !soundEnabled || alertCooldown) return;
+  alertCooldown = true;
+  setTimeout(() => alertCooldown = false, 4000);
+
+  if (type === 'critical') {
+    // Urgent 3-tone alarm
+    [0, 0.25, 0.5].forEach((delay, i) => {
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.frequency.value = i % 2 === 0 ? 880 : 660;
+      osc.type = 'square';
+      g.gain.setValueAtTime(0, audioCtx.currentTime + delay);
+      g.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + delay + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.22);
+      osc.connect(g); g.connect(masterGain);
+      osc.start(audioCtx.currentTime + delay);
+      osc.stop(audioCtx.currentTime + delay + 0.25);
+    });
+  } else {
+    // Soft 2-tone notification
+    [440, 550].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      g.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.18);
+      g.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + i * 0.18 + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.18 + 0.3);
+      osc.connect(g); g.connect(masterGain);
+      osc.start(audioCtx.currentTime + i * 0.18);
+      osc.stop(audioCtx.currentTime + i * 0.18 + 0.35);
+    });
+  }
+}
+
 // ==================== CHART SETUP ====================
 
 const chartDefaults = {
@@ -724,11 +985,15 @@ async function fetchData() {
     else if (vibe === 'Moderate & Buzzing') document.getElementById('chip-moderate').classList.add('active');
     else document.getElementById('chip-energetic').classList.add('active');
 
-    // Music card
+    // Music card + trigger ambient sound on vibe change
     const mInfo = MUSIC_MAP[vibe] || MUSIC_MAP['Cozy & Premium'];
     document.getElementById('musicTitle').textContent = mInfo.title;
     document.getElementById('musicSub').textContent = mInfo.sub;
     document.getElementById('musicTag').textContent = mInfo.tag;
+    if (vibe !== currentVibe) {
+      currentVibe = vibe;
+      if (soundEnabled) playAmbient(vibe);
+    }
 
     // Zone simulation (distributed from total count)
     zones.forEach((z, i) => {
@@ -741,6 +1006,11 @@ async function fetchData() {
     // Alerts
     const alertsList = document.getElementById('alertsList');
     const newAlerts = alerts.filter(a => !alertHistory.includes(a));
+    // Play sound for new alerts
+    if (newAlerts.length > 0) {
+      const hasCritical = newAlerts.some(a => a.toLowerCase().includes('critical'));
+      playAlertSound(hasCritical ? 'critical' : 'warning');
+    }
     alertHistory = alerts;
 
     if (alerts.length === 0) {
