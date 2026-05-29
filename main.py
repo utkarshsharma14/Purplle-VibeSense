@@ -34,3 +34,8 @@ def get_store_vibe():
         "ambient_music": store_metrics["ambient_music"],
         "realtime_alerts": store_metrics["realtime_alerts"][-5:]
     }
+if __name__ == "__main__":
+    import uvicorn
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
