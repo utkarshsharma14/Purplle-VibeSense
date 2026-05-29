@@ -1,0 +1,7 @@
+PURPLLE-VIBESENSE/ (Main Root Folder)
+├── core_ai.py
+├── vibe_engine.py
+├── main.py
+├── requirements.txt
+├── yolov8n.pt
+└── store.mp4         
