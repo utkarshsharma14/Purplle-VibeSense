@@ -33,23 +33,44 @@
                 <h3 id="music-val" class="text-lg font-medium mt-6 text-emerald-400">Syncing...</h3>
             </div>
         </div>
-        <div id="alerts-wrapper" class="bg-slate-950 border border-slate-800 rounded-2xl p-6">
+        
+        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6">
             <h2 class="text-lg font-bold mb-4">Live Alerts</h2>
-            <div id="alerts-container"></div>
+            <div id="alerts-container" class="space-y-3">
+                </div>
         </div>
     </main>
 
     <script>
-        // Endpoint change kar diya hai taaki live server pe chale
         async function updateDashboard() {
             try {
                 const res = await fetch("/api/v1/store/vibe");
                 const data = await res.json();
+                
+                // Update stats
                 document.getElementById("occupancy-val").innerText = data.current_occupancy;
                 document.getElementById("vibe-val").innerText = data.store_vibe;
                 document.getElementById("music-val").innerText = data.ambient_music;
-            } catch (e) { console.log("Update error"); }
+
+                // Update Alerts
+                const container = document.getElementById("alerts-container");
+                if (data.realtime_alerts && data.realtime_alerts.length > 0) {
+                    container.innerHTML = ""; // Clear current list
+                    data.realtime_alerts.slice().reverse().forEach(alert => {
+                        const div = document.createElement("div");
+                        div.className = "bg-slate-900 border border-slate-800 p-3 rounded-lg text-sm text-slate-300";
+                        div.innerHTML = `💡 ${alert}`;
+                        container.appendChild(div);
+                    });
+                } else {
+                    container.innerHTML = `<p class="text-slate-500 text-sm italic">No active alerts.</p>`;
+                }
+            } catch (e) { 
+                console.error("Update error:", e); 
+            }
         }
+        
+        // Refresh every 2 seconds
         setInterval(updateDashboard, 2000);
         updateDashboard();
     </script>
