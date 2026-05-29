@@ -1,15 +1,15 @@
 import threading
+import os
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from core_ai import StoreMonitor
 from vibe_engine import store_metrics
 import uvicorn
-import os
 
 app = FastAPI(title="VibeSense AI - Analytics API Portal")
 
-# Middleware for CORS to allow frontend communication
+# Middleware to allow frontend communication
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,16 +27,20 @@ def run_ai_pipeline():
 def startup_event():
     threading.Thread(target=run_ai_pipeline, daemon=True).start()
 
-# Homepage route to serve index.html
+# Homepage route to serve index.html with path-finding logic
 @app.get("/", response_class=HTMLResponse)
 def read_root():
-    # Ensure index.html exists in the 'templates' folder
-    try:
-        with open("templates/index.html", "r") as f:
+    # Construct the absolute path to the templates folder
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, "templates", "index.html")
+    
+    if os.path.exists(file_path):
+        with open(file_path, "r") as f:
             html_content = f.read()
         return HTMLResponse(content=html_content)
-    except FileNotFoundError:
-        return "<h1>Error: templates/index.html not found.</h1>"
+    else:
+        # If it fails, this will show the path it tried to access
+        return f"<h1>Error: templates/index.html not found.</h1><p>Tried path: {file_path}</p>"
 
 # API route for metrics
 @app.get("/api/v1/store/vibe")
