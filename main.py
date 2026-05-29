@@ -2,6 +2,7 @@ import threading
 import os
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from core_ai import StoreMonitor
 from vibe_engine import store_metrics
@@ -9,7 +10,6 @@ import uvicorn
 
 app = FastAPI(title="VibeSense AI - Analytics API Portal")
 
-# CORS middleware for frontend communication
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,6 +17,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static files (store.mp4, etc.)
+app.mount("/static", StaticFiles(directory="."), name="static")
 
 def run_ai_pipeline():
     monitor = StoreMonitor("store.mp4")
@@ -26,14 +29,12 @@ def run_ai_pipeline():
 def startup_event():
     threading.Thread(target=run_ai_pipeline, daemon=True).start()
 
-# Homepage route to serve your pro dashboard
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     file_path = os.path.join(os.path.dirname(__file__), "templates", "index.html")
     with open(file_path, "r") as f:
         return HTMLResponse(content=f.read())
 
-# API route for metrics
 @app.get("/api/v1/store/vibe")
 def get_store_vibe():
     return {

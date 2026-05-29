@@ -387,6 +387,132 @@
       nav { padding: 0 16px; }
       main { padding: 16px 12px 32px; }
     }
+
+    /* ===== STREAM MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(4,7,14,0.92);
+      backdrop-filter: blur(12px);
+      align-items: center; justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal-overlay.open { display: flex; }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: min(960px, 95vw);
+      max-height: 92vh;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp { from { transform:translateY(24px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .modal-title { font-size: 16px; font-weight: 700; display:flex; align-items:center; gap:10px; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--muted); font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); border-color: var(--accent); }
+
+    .modal-tabs {
+      display: flex; gap: 6px;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 6px 16px; border-radius: 8px;
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); font-family: var(--font-display);
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .tab-btn.active { background: rgba(108,143,255,0.12); border-color: var(--accent); color: var(--text); }
+
+    .modal-body {
+      flex: 1; overflow-y: auto; padding: 20px 24px 24px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    .stream-viewport {
+      width: 100%; aspect-ratio: 16/9;
+      background: #04070e;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden; position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .stream-viewport video,
+    .stream-viewport iframe {
+      width: 100%; height: 100%; object-fit: contain;
+      border: none;
+    }
+    .stream-placeholder {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      color: var(--muted); font-family: var(--font-mono); font-size: 13px;
+      text-align: center; padding: 40px;
+    }
+    .stream-placeholder .big-icon { font-size: 48px; opacity: 0.3; }
+
+    .stream-controls {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .ctrl-btn {
+      padding: 8px 18px; border-radius: 10px;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); font-family: var(--font-display);
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; display:flex; align-items:center; gap:6px;
+    }
+    .ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .ctrl-btn.primary { background: rgba(108,143,255,0.15); border-color: var(--accent); color: var(--accent); }
+    .ctrl-btn.danger { background: rgba(255,77,106,0.1); border-color: rgba(255,77,106,0.4); color: var(--red); }
+
+    .stream-input-row {
+      display: flex; gap: 10px; align-items: center;
+    }
+    .stream-input {
+      flex: 1; padding: 10px 14px; border-radius: 10px;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); font-family: var(--font-mono); font-size: 13px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .stream-input:focus { border-color: var(--accent); }
+    .stream-input::placeholder { color: var(--muted); }
+
+    .stream-status-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; border-radius: 10px;
+      background: var(--surface2); border: 1px solid var(--border);
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+    }
+    .stream-status-dot { width:8px; height:8px; border-radius:50%; background: var(--muted); }
+    .stream-status-dot.live { background: var(--green); animation: pulse 1.5s infinite; }
+    .stream-status-dot.error { background: var(--red); }
+
+    .info-box {
+      padding: 12px 16px; border-radius: 10px;
+      background: rgba(108,143,255,0.06);
+      border: 1px solid rgba(108,143,255,0.15);
+      font-family: var(--font-mono); font-size: 12px;
+      color: var(--muted); line-height: 1.7;
+    }
+    .info-box b { color: var(--accent); }
   </style>
 </head>
 <body>
@@ -395,9 +521,112 @@
   <div class="logo">VibeSense <span>AI</span></div>
   <div class="nav-right">
     <div class="live-pill"><div class="live-dot"></div>LIVE</div>
-    <button class="btn-stream" onclick="window.open('/api/v1/store/vibe','_blank')">Live Stream</button>
+    <button class="btn-stream" onclick="openStreamModal()">📹 Live Stream</button>
   </div>
 </nav>
+
+<!-- ===== STREAM MODAL ===== -->
+<div class="modal-overlay" id="streamModal" onclick="onOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">
+        <div class="live-dot" style="width:9px;height:9px;"></div>
+        Live Stream Viewer
+      </div>
+      <button class="modal-close" onclick="closeStreamModal()">✕</button>
+    </div>
+
+    <div class="modal-tabs">
+      <button class="tab-btn active" onclick="switchTab('webcam')">📷 Webcam</button>
+      <button class="tab-btn" onclick="switchTab('file')">🎬 store.mp4</button>
+      <button class="tab-btn" onclick="switchTab('rtsp')">📡 IP / RTSP</button>
+      <button class="tab-btn" onclick="switchTab('webrtc')">⚡ WebRTC URL</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- STREAM VIEWPORT -->
+      <div class="stream-viewport" id="streamViewport">
+        <div class="stream-placeholder" id="streamPlaceholder">
+          <div class="big-icon">📹</div>
+          <div>Select a stream source above to begin</div>
+          <div style="font-size:11px;opacity:0.6;">Supports Webcam · MP4 · IP Camera · WebRTC</div>
+        </div>
+        <video id="streamVideo" style="display:none;" autoplay muted playsinline></video>
+        <video id="fileVideo" style="display:none;" autoplay loop controls></video>
+        <iframe id="webrtcFrame" style="display:none;" allow="camera;microphone;autoplay" allowfullscreen></iframe>
+      </div>
+
+      <!-- STATUS BAR -->
+      <div class="stream-status-bar">
+        <div class="stream-status-dot" id="streamDot"></div>
+        <span id="streamStatusText">No stream active</span>
+        <span style="margin-left:auto;opacity:0.5;" id="streamMeta"></span>
+      </div>
+
+      <!-- TAB PANELS -->
+
+      <!-- WEBCAM PANEL -->
+      <div id="panel-webcam">
+        <div class="stream-controls">
+          <button class="ctrl-btn primary" onclick="startWebcam()">▶ Start Webcam</button>
+          <button class="ctrl-btn danger" onclick="stopStream()">⏹ Stop</button>
+          <button class="ctrl-btn" onclick="toggleMirror()">↔ Mirror</button>
+          <button class="ctrl-btn" onclick="takeSnapshot()">📸 Snapshot</button>
+        </div>
+        <div class="info-box" style="margin-top:10px;">
+          <b>Webcam:</b> Uses your device's default camera. Browser will ask for permission.<br>
+          Works best for demo / development. Click <b>Start Webcam</b> to begin.
+        </div>
+      </div>
+
+      <!-- FILE PANEL -->
+      <div id="panel-file" style="display:none;">
+        <div class="stream-controls">
+          <label class="ctrl-btn primary" style="cursor:pointer;">
+            📂 Choose Video File
+            <input type="file" accept="video/*" style="display:none;" onchange="loadFileStream(event)">
+          </label>
+          <button class="ctrl-btn primary" onclick="loadServerVideo()">▶ Load store.mp4</button>
+          <button class="ctrl-btn danger" onclick="stopFileStream()">⏹ Stop</button>
+        </div>
+        <div class="info-box" style="margin-top:10px;">
+          <b>store.mp4:</b> Click <b>Load store.mp4</b> to stream the deployed video from your server.<br>
+          Or upload any local video file via <b>Choose Video File</b>.
+        </div>
+      </div>
+
+      <!-- RTSP PANEL -->
+      <div id="panel-rtsp" style="display:none;">
+        <div class="stream-input-row">
+          <input class="stream-input" id="rtspUrl" placeholder="e.g. http://192.168.1.100:8080/video  or  ws://..." />
+          <button class="ctrl-btn primary" onclick="loadRtspStream()">▶ Connect</button>
+          <button class="ctrl-btn danger" onclick="stopStream()">⏹ Stop</button>
+        </div>
+        <div class="info-box" style="margin-top:10px;">
+          <b>IP Camera / RTSP:</b> Enter an HTTP MJPEG stream URL (e.g. from IP Webcam Android app) or a WebSocket stream URL.<br>
+          <b>Note:</b> Raw RTSP is not supported in browsers directly — use an MJPEG proxy or convert via <b>go2rtc / mediamtx</b> first.<br>
+          <b>Quick test:</b> Install <b>IP Webcam</b> on Android → start server → paste the /video URL here.
+        </div>
+      </div>
+
+      <!-- WEBRTC PANEL -->
+      <div id="panel-webrtc" style="display:none;">
+        <div class="stream-input-row">
+          <input class="stream-input" id="webrtcUrl" placeholder="e.g. https://your-webrtc-server/stream" />
+          <button class="ctrl-btn primary" onclick="loadWebRTC()">▶ Open</button>
+          <button class="ctrl-btn danger" onclick="stopWebRTC()">⏹ Stop</button>
+        </div>
+        <div class="info-box" style="margin-top:10px;">
+          <b>WebRTC:</b> Paste any WebRTC viewer URL (e.g. from go2rtc, Janus, MediaSoup, or OBS stream key page).<br>
+          The stream will be embedded in an iframe. Make sure your WebRTC server allows embedding.<br>
+          <b>Low-latency tip:</b> Use <b>go2rtc</b> to relay your RTSP into WebRTC for sub-second latency.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <main>
 
@@ -1042,6 +1271,181 @@ async function fetchData() {
 
 fetchData();
 setInterval(fetchData, 3000);
+
+// ==================== STREAM MODAL ====================
+
+let webcamStream = null;
+let activeTab = 'webcam';
+let mirrored = false;
+
+function openStreamModal() {
+  document.getElementById('streamModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeStreamModal() {
+  document.getElementById('streamModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function onOverlayClick(e) {
+  if (e.target === document.getElementById('streamModal')) closeStreamModal();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeStreamModal(); });
+
+function switchTab(tab) {
+  activeTab = tab;
+  ['webcam','file','rtsp','webrtc'].forEach(t => {
+    document.getElementById(`panel-${t}`).style.display = t === tab ? 'block' : 'none';
+    document.querySelectorAll('.tab-btn')[['webcam','file','rtsp','webrtc'].indexOf(t)]
+      .classList.toggle('active', t === tab);
+  });
+}
+
+function setStreamStatus(state, text, meta = '') {
+  const dot = document.getElementById('streamDot');
+  dot.className = 'stream-status-dot' + (state === 'live' ? ' live' : state === 'error' ? ' error' : '');
+  document.getElementById('streamStatusText').textContent = text;
+  document.getElementById('streamMeta').textContent = meta;
+}
+
+function showVideo(id) {
+  ['streamVideo','fileVideo','webrtcFrame'].forEach(vid => {
+    document.getElementById(vid).style.display = vid === id ? 'block' : 'none';
+  });
+  document.getElementById('streamPlaceholder').style.display = 'none';
+}
+
+function showPlaceholder(msg = 'No stream active') {
+  ['streamVideo','fileVideo','webrtcFrame'].forEach(vid => {
+    document.getElementById(vid).style.display = 'none';
+  });
+  document.getElementById('streamPlaceholder').style.display = 'flex';
+  document.getElementById('streamPlaceholder').querySelector('div:nth-child(2)').textContent = msg;
+  setStreamStatus('off', 'No stream active');
+}
+
+// --- WEBCAM ---
+async function startWebcam() {
+  try {
+    if (webcamStream) stopStream();
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    webcamStream = stream;
+    const vid = document.getElementById('streamVideo');
+    vid.srcObject = stream;
+    showVideo('streamVideo');
+    const track = stream.getVideoTracks()[0];
+    const settings = track.getSettings();
+    setStreamStatus('live', '● Webcam Live', `${settings.width || '—'}×${settings.height || '—'}`);
+  } catch(e) {
+    setStreamStatus('error', 'Camera access denied — check browser permissions', '');
+  }
+}
+
+function stopStream() {
+  if (webcamStream) { webcamStream.getTracks().forEach(t => t.stop()); webcamStream = null; }
+  const vid = document.getElementById('streamVideo');
+  vid.srcObject = null;
+  showPlaceholder('Stream stopped');
+}
+
+function toggleMirror() {
+  mirrored = !mirrored;
+  document.getElementById('streamVideo').style.transform = mirrored ? 'scaleX(-1)' : 'scaleX(1)';
+}
+
+function takeSnapshot() {
+  const vid = document.getElementById('streamVideo');
+  if (!vid.srcObject) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = vid.videoWidth; canvas.height = vid.videoHeight;
+  canvas.getContext('2d').drawImage(vid, 0, 0);
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = `vibesense-snapshot-${Date.now()}.png`;
+  a.click();
+}
+
+// --- FILE / store.mp4 ---
+function loadServerVideo() {
+  const vid = document.getElementById('fileVideo');
+  vid.src = '/static/store.mp4';
+  vid.onerror = () => {
+    // try root path
+    vid.src = '/store.mp4';
+    vid.onerror = () => setStreamStatus('error', 'store.mp4 not found on server. Mount it at /static/store.mp4', '');
+  };
+  vid.oncanplay = () => {
+    showVideo('fileVideo');
+    setStreamStatus('live', '● store.mp4 Playing', `${vid.videoWidth}×${vid.videoHeight}`);
+  };
+  showVideo('fileVideo');
+}
+
+function loadFileStream(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const vid = document.getElementById('fileVideo');
+  vid.src = URL.createObjectURL(file);
+  vid.oncanplay = () => {
+    showVideo('fileVideo');
+    setStreamStatus('live', `● ${file.name}`, `${(file.size/1e6).toFixed(1)} MB`);
+  };
+}
+
+function stopFileStream() {
+  const vid = document.getElementById('fileVideo');
+  vid.pause(); vid.src = '';
+  showPlaceholder('Stream stopped');
+}
+
+// --- IP / RTSP (MJPEG HTTP) ---
+function loadRtspStream() {
+  const url = document.getElementById('rtspUrl').value.trim();
+  if (!url) return;
+  const vid = document.getElementById('streamVideo');
+
+  // Try as MJPEG img stream first (common for IP cams)
+  // Use an <img> tag for MJPEG
+  document.getElementById('streamPlaceholder').style.display = 'none';
+  ['streamVideo','fileVideo','webrtcFrame'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+
+  // Remove old img if any
+  const old = document.getElementById('mjpegImg');
+  if (old) old.remove();
+
+  const img = document.createElement('img');
+  img.id = 'mjpegImg';
+  img.src = url;
+  img.style.cssText = 'width:100%;height:100%;object-fit:contain;position:absolute;inset:0;';
+  img.onerror = () => setStreamStatus('error', 'Cannot connect — check URL, CORS, or use a proxy', '');
+  img.onload = () => setStreamStatus('live', '● IP Camera Stream Live', url.split('/')[2] || '');
+  document.getElementById('streamViewport').appendChild(img);
+  setStreamStatus('live', 'Connecting...', url);
+}
+
+// --- WEBRTC URL ---
+function loadWebRTC() {
+  const url = document.getElementById('webrtcUrl').value.trim();
+  if (!url) return;
+  const frame = document.getElementById('webrtcFrame');
+  frame.src = url;
+  frame.onload = () => setStreamStatus('live', '● WebRTC Stream Embedded', url.split('/')[2] || '');
+  showVideo('webrtcFrame');
+  setStreamStatus('live', 'Loading WebRTC...', url);
+}
+
+function stopWebRTC() {
+  const frame = document.getElementById('webrtcFrame');
+  frame.src = '';
+  const old = document.getElementById('mjpegImg');
+  if (old) old.remove();
+  showPlaceholder('Stream stopped');
+}
+
 </script>
 </body>
 </html>
