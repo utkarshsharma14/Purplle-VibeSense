@@ -624,6 +624,216 @@ input[type=range] {
   to   { opacity:1; transform: translateY(0); }
 }
 
+/* ===================== AI INSIGHTS ===================== */
+.ai-panel { padding: 24px; }
+.ai-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+.ai-title-wrap {}
+.ai-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 12px; border-radius:100px;
+  background:var(--purpleDim); border:1px solid rgba(176,138,255,0.25);
+  font-family:var(--font-mono); font-size:10px; color:var(--purple);
+  letter-spacing:1px; font-weight:500;
+}
+.ai-generate-btn {
+  display:flex; align-items:center; gap:7px;
+  padding:9px 20px; border-radius:var(--radius-sm);
+  background:linear-gradient(135deg,var(--purple),var(--gold));
+  border:none; color:#0a0808;
+  font-family:var(--font-sans); font-size:13px; font-weight:700;
+  cursor:pointer; transition:all var(--transition);
+  box-shadow:0 4px 20px rgba(176,138,255,0.25);
+}
+.ai-generate-btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(176,138,255,0.35); }
+.ai-generate-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.ai-output {
+  min-height:120px;
+  padding:18px; border-radius:var(--radius-md);
+  background:var(--surface2); border:1px solid var(--border);
+  font-size:13px; line-height:1.8; color:var(--text);
+  transition:all var(--transition);
+  position:relative; overflow:hidden;
+}
+.ai-output.loading::after {
+  content:'';
+  position:absolute; bottom:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent, var(--purple), var(--gold), transparent);
+  animation:aiScan 1.5s ease infinite;
+}
+@keyframes aiScan { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+.ai-placeholder { color:var(--text3); font-family:var(--font-mono); font-size:12px; }
+.ai-insight-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px;
+}
+.ai-insight-chip {
+  padding:10px 14px; border-radius:var(--radius-sm);
+  background:var(--surface); border:1px solid var(--border);
+  font-size:12px; line-height:1.5;
+  transition:all var(--transition);
+}
+.ai-insight-chip:hover { border-color:var(--borderHov); }
+.ai-chip-icon { font-size:16px; margin-bottom:4px; }
+.ai-chip-label { font-size:10px; color:var(--text3); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:1px; }
+.ai-chip-val { font-size:13px; font-weight:600; margin-top:2px; }
+.ai-history { margin-top:14px; }
+.ai-history-title { font-size:11px; color:var(--text3); font-family:var(--font-mono); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+.ai-history-list { display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto; scrollbar-width:none; }
+.ai-history-item {
+  padding:9px 13px; border-radius:var(--radius-sm);
+  background:var(--surface); border:1px solid var(--border);
+  font-size:12px; color:var(--text2); line-height:1.5;
+  cursor:pointer; transition:all var(--transition);
+}
+.ai-history-item:hover { border-color:var(--purple); color:var(--text); }
+.ai-history-ts { font-family:var(--font-mono); font-size:10px; color:var(--text3); margin-top:2px; }
+
+/* ===================== HEATMAP ===================== */
+.heatmap-panel { padding:24px; }
+.heatmap-wrap {
+  position:relative; margin-top:14px;
+  border-radius:var(--radius-md); overflow:hidden;
+  border:1px solid var(--border);
+  background:var(--surface2);
+}
+.heatmap-svg { width:100%; display:block; }
+.heatmap-legend {
+  display:flex; align-items:center; gap:8px; margin-top:12px;
+  font-family:var(--font-mono); font-size:10px; color:var(--text2);
+}
+.heatmap-grad {
+  width:120px; height:8px; border-radius:4px;
+  background:linear-gradient(90deg,rgba(110,181,255,0.3),rgba(245,166,35,0.7),rgba(255,85,119,0.9));
+}
+.hmap-controls { display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+.hmap-btn {
+  padding:5px 14px; border-radius:8px;
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--text2); font-family:var(--font-mono); font-size:11px;
+  cursor:pointer; transition:all var(--transition);
+}
+.hmap-btn:hover,.hmap-btn.active { background:var(--goldDim); border-color:rgba(212,175,80,0.3); color:var(--gold); }
+
+/* ===================== EXPORT ===================== */
+.export-panel { padding:24px; }
+.export-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:14px; }
+.export-card {
+  padding:18px 16px; border-radius:var(--radius-md);
+  background:var(--surface2); border:1px solid var(--border);
+  text-align:center; cursor:pointer; transition:all var(--transition);
+}
+.export-card:hover { border-color:var(--borderHov); transform:translateY(-3px); box-shadow:var(--shadow); }
+.export-icon { font-size:28px; margin-bottom:8px; }
+.export-name { font-size:13px; font-weight:600; margin-bottom:4px; }
+.export-desc { font-size:11px; color:var(--text2); font-family:var(--font-mono); }
+.export-history-list { display:flex; flex-direction:column; gap:6px; margin-top:14px; max-height:120px; overflow-y:auto; scrollbar-width:none; }
+.export-hist-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 12px; border-radius:var(--radius-sm);
+  background:var(--surface); border:1px solid var(--border);
+  font-size:12px; font-family:var(--font-mono);
+}
+.export-hist-name { color:var(--text); }
+.export-hist-meta { color:var(--text3); font-size:10px; }
+.export-dl-btn {
+  padding:3px 10px; border-radius:6px;
+  background:var(--goldDim); border:1px solid rgba(212,175,80,0.2);
+  color:var(--gold); font-size:10px; cursor:pointer;
+  transition:all var(--transition);
+}
+.export-dl-btn:hover { background:rgba(212,175,80,0.2); }
+
+/* ===================== NOTIFICATIONS ===================== */
+.notif-tray {
+  position:fixed; top:76px; right:20px; z-index:300;
+  width:360px; display:flex; flex-direction:column; gap:8px;
+  pointer-events:none;
+}
+.notif-card {
+  padding:14px 16px; border-radius:var(--radius-md);
+  background:var(--bg2); border:1px solid var(--border);
+  box-shadow:var(--shadow-lg);
+  backdrop-filter:blur(20px);
+  display:flex; align-items:flex-start; gap:12px;
+  pointer-events:all;
+  animation:notifIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+  transition:all 0.3s ease;
+}
+@keyframes notifIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
+.notif-card.out { animation:notifOut 0.3s ease both; }
+@keyframes notifOut { to{transform:translateX(120%);opacity:0} }
+.notif-icon { font-size:20px; flex-shrink:0; margin-top:1px; }
+.notif-body { flex:1; }
+.notif-title { font-size:13px; font-weight:700; margin-bottom:3px; }
+.notif-msg { font-size:12px; color:var(--text2); line-height:1.5; }
+.notif-time { font-size:10px; color:var(--text3); font-family:var(--font-mono); margin-top:4px; }
+.notif-close {
+  width:22px; height:22px; border-radius:6px;
+  background:var(--surface); border:none; color:var(--text3);
+  font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all var(--transition); flex-shrink:0;
+}
+.notif-close:hover { color:var(--red); }
+.notif-progress {
+  position:absolute; bottom:0; left:0; height:2px; border-radius:0 0 var(--radius-md) var(--radius-md);
+  animation:notifProgress var(--dur,5s) linear forwards;
+}
+@keyframes notifProgress { from{width:100%} to{width:0%} }
+.notif-card { position:relative; overflow:hidden; }
+
+.notif-settings-panel { padding:24px; }
+.notif-toggle-list { display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+.notif-toggle-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px; border-radius:var(--radius-sm);
+  background:var(--surface2); border:1px solid var(--border);
+  transition:all var(--transition);
+}
+.notif-toggle-row:hover { border-color:var(--borderHov); }
+.notif-toggle-left { display:flex; align-items:center; gap:10px; }
+.notif-toggle-icon { font-size:18px; }
+.notif-toggle-name { font-size:13px; font-weight:600; }
+.notif-toggle-desc { font-size:11px; color:var(--text2); }
+.toggle-switch {
+  width:44px; height:24px; border-radius:100px;
+  background:var(--surface); border:1px solid var(--border);
+  position:relative; cursor:pointer; transition:all var(--transition);
+  flex-shrink:0;
+}
+.toggle-switch.on { background:var(--green); border-color:var(--green); }
+.toggle-thumb {
+  width:18px; height:18px; border-radius:50%;
+  background:#fff; position:absolute; top:2px; left:2px;
+  transition:transform 0.2s ease;
+  box-shadow:0 1px 4px rgba(0,0,0,0.3);
+}
+.toggle-switch.on .toggle-thumb { transform:translateX(20px); }
+.notif-btn-row { display:flex; gap:10px; margin-top:16px; }
+.notif-test-btn {
+  padding:8px 18px; border-radius:var(--radius-sm);
+  background:var(--goldDim); border:1px solid rgba(212,175,80,0.3);
+  color:var(--gold); font-family:var(--font-sans); font-size:13px;
+  font-weight:600; cursor:pointer; transition:all var(--transition);
+}
+.notif-test-btn:hover { background:rgba(212,175,80,0.2); }
+.push-enable-btn {
+  padding:8px 18px; border-radius:var(--radius-sm);
+  background:var(--purpleDim); border:1px solid rgba(176,138,255,0.3);
+  color:var(--purple); font-family:var(--font-sans); font-size:13px;
+  font-weight:600; cursor:pointer; transition:all var(--transition);
+}
+.push-enable-btn:hover { background:rgba(176,138,255,0.2); }
+
+/* ===================== SECTION DIVIDER ===================== */
+.section-divider {
+  display:flex; align-items:center; gap:14px;
+  margin:4px 0 -8px;
+}
+.divider-line { flex:1; height:1px; background:var(--border); }
+.divider-label {
+  font-family:var(--font-mono); font-size:10px; letter-spacing:2px;
+  text-transform:uppercase; color:var(--text3); white-space:nowrap;
+}
+
 /* ===================== RESPONSIVE ===================== */
 @media (max-width: 1200px) {
   .kpi-grid { grid-template-columns: repeat(3,1fr); }
@@ -939,6 +1149,191 @@ input[type=range] {
     </div>
   </div>
 
+  <!-- SECTION DIVIDER -->
+  <div class="section-divider"><div class="divider-line"></div><div class="divider-label">AI · Analytics · Export · Alerts</div><div class="divider-line"></div></div>
+
+  <!-- AI INSIGHTS PANEL -->
+  <div class="card ai-panel" style="animation:fadeUp 0.6s 0.45s ease both;">
+    <div class="ai-header">
+      <div>
+        <div class="section-label">Powered by Claude</div>
+        <div class="section-title" style="margin-bottom:0;">AI Store Insights</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="ai-badge">✦ CLAUDE AI</div>
+        <button class="ai-generate-btn" id="aiBtn" onclick="generateInsights()">
+          ✦ Generate Insights
+        </button>
+      </div>
+    </div>
+    <div class="ai-output" id="aiOutput">
+      <div class="ai-placeholder">Click "Generate Insights" to get AI-powered recommendations based on current store data — occupancy trends, vibe analysis, staff suggestions, and revenue optimization tips.</div>
+    </div>
+    <div class="ai-insight-grid" id="aiChips"></div>
+    <div class="ai-history" id="aiHistory" style="display:none;">
+      <div class="ai-history-title">Previous Insights</div>
+      <div class="ai-history-list" id="aiHistoryList"></div>
+    </div>
+  </div>
+
+  <!-- HEATMAP + EXPORT ROW -->
+  <div style="display:grid;grid-template-columns:1fr 380px;gap:16px;animation:fadeUp 0.6s 0.5s ease both;">
+
+    <!-- FLOOR HEATMAP -->
+    <div class="card heatmap-panel">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+        <div>
+          <div class="section-label">Spatial Analytics</div>
+          <div class="section-title" style="margin-bottom:0;">Customer Journey Heatmap</div>
+        </div>
+        <div class="hmap-controls">
+          <button class="hmap-btn active" onclick="setHmapMode('live',this)">Live</button>
+          <button class="hmap-btn" onclick="setHmapMode('peak',this)">Peak</button>
+          <button class="hmap-btn" onclick="setHmapMode('avg',this)">Avg</button>
+        </div>
+      </div>
+      <div class="heatmap-wrap">
+        <svg class="heatmap-svg" viewBox="0 0 600 320" id="hmapSvg">
+          <!-- Store floor plan -->
+          <rect width="600" height="320" fill="transparent"/>
+          <!-- Floor outline -->
+          <rect x="10" y="10" width="580" height="300" rx="8" fill="none" stroke="rgba(212,175,80,0.2)" stroke-width="1.5"/>
+
+          <!-- Zones -->
+          <g id="hmapZones">
+            <!-- Entrance -->
+            <rect id="hz0" x="20" y="230" width="140" height="70" rx="6" fill="rgba(110,181,255,0.15)" stroke="rgba(110,181,255,0.3)" stroke-width="1"/>
+            <text x="90" y="270" text-anchor="middle" fill="rgba(110,181,255,0.8)" font-size="11" font-family="JetBrains Mono">Entrance/Exit</text>
+            <text id="hzc0" x="90" y="285" text-anchor="middle" fill="rgba(110,181,255,0.6)" font-size="10" font-family="JetBrains Mono">0 people</text>
+
+            <!-- Checkout -->
+            <rect id="hz1" x="180" y="230" width="130" height="70" rx="6" fill="rgba(245,166,35,0.15)" stroke="rgba(245,166,35,0.3)" stroke-width="1"/>
+            <text x="245" y="270" text-anchor="middle" fill="rgba(245,166,35,0.8)" font-size="11" font-family="JetBrains Mono">Checkout</text>
+            <text id="hzc1" x="245" y="285" text-anchor="middle" fill="rgba(245,166,35,0.6)" font-size="10" font-family="JetBrains Mono">0 people</text>
+
+            <!-- Aisle 3 -->
+            <rect id="hz2" x="330" y="160" width="120" height="140" rx="6" fill="rgba(176,138,255,0.15)" stroke="rgba(176,138,255,0.3)" stroke-width="1"/>
+            <text x="390" y="235" text-anchor="middle" fill="rgba(176,138,255,0.8)" font-size="11" font-family="JetBrains Mono">Aisle 3</text>
+            <text id="hzc2" x="390" y="250" text-anchor="middle" fill="rgba(176,138,255,0.6)" font-size="10" font-family="JetBrains Mono">0 people</text>
+
+            <!-- Cosmetics -->
+            <rect id="hz3" x="20" y="20" width="250" height="190" rx="6" fill="rgba(255,85,119,0.12)" stroke="rgba(255,85,119,0.25)" stroke-width="1"/>
+            <text x="145" y="115" text-anchor="middle" fill="rgba(255,85,119,0.8)" font-size="11" font-family="JetBrains Mono">Cosmetics</text>
+            <text id="hzc3" x="145" y="130" text-anchor="middle" fill="rgba(255,85,119,0.6)" font-size="10" font-family="JetBrains Mono">0 people</text>
+
+            <!-- Skincare -->
+            <rect id="hz4" x="290" y="20" width="290" height="120" rx="6" fill="rgba(52,217,155,0.12)" stroke="rgba(52,217,155,0.25)" stroke-width="1"/>
+            <text x="435" y="80" text-anchor="middle" fill="rgba(52,217,155,0.8)" font-size="11" font-family="JetBrains Mono">Skincare Corner</text>
+            <text id="hzc4" x="435" y="95" text-anchor="middle" fill="rgba(52,217,155,0.6)" font-size="10" font-family="JetBrains Mono">0 people</text>
+
+            <!-- Hot zone overlay circles (heat blobs) -->
+            <defs>
+              <radialGradient id="hg0" cx="50%" cy="50%"><stop offset="0%" stop-color="rgba(255,85,119,0.7)"/><stop offset="100%" stop-color="rgba(255,85,119,0)"/></radialGradient>
+              <radialGradient id="hg1" cx="50%" cy="50%"><stop offset="0%" stop-color="rgba(245,166,35,0.6)"/><stop offset="100%" stop-color="rgba(245,166,35,0)"/></radialGradient>
+              <radialGradient id="hg2" cx="50%" cy="50%"><stop offset="0%" stop-color="rgba(110,181,255,0.5)"/><stop offset="100%" stop-color="rgba(110,181,255,0)"/></radialGradient>
+            </defs>
+            <ellipse id="hblob0" cx="145" cy="110" rx="60" ry="50" fill="url(#hg0)" opacity="0.4"/>
+            <ellipse id="hblob1" cx="245" cy="260" rx="50" ry="35" fill="url(#hg1)" opacity="0.4"/>
+            <ellipse id="hblob2" cx="90"  cy="265" rx="40" ry="28" fill="url(#hg2)" opacity="0.3"/>
+          </g>
+
+          <!-- People dots -->
+          <g id="hmapDots"></g>
+
+          <!-- Legend labels -->
+          <text x="590" y="20" text-anchor="end" fill="rgba(212,175,80,0.4)" font-size="9" font-family="JetBrains Mono">LIVE FLOOR MAP</text>
+        </svg>
+      </div>
+      <div class="heatmap-legend">
+        <span>Low</span>
+        <div class="heatmap-grad"></div>
+        <span>High</span>
+        <span style="margin-left:auto;font-size:10px;" id="hmapTotal">0 total</span>
+      </div>
+    </div>
+
+    <!-- EXPORT PANEL -->
+    <div class="card export-panel">
+      <div class="section-label">Data Export</div>
+      <div class="section-title">Reports & Downloads</div>
+      <div class="export-grid">
+        <div class="export-card" onclick="exportCSV()">
+          <div class="export-icon">📊</div>
+          <div class="export-name">CSV Data</div>
+          <div class="export-desc">Occupancy & vibe log</div>
+        </div>
+        <div class="export-card" onclick="exportJSON()">
+          <div class="export-icon">📦</div>
+          <div class="export-name">JSON Full</div>
+          <div class="export-desc">Complete session dump</div>
+        </div>
+        <div class="export-card" onclick="exportReport()">
+          <div class="export-icon">📋</div>
+          <div class="export-name">HTML Report</div>
+          <div class="export-desc">Printable summary</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="section-label" style="margin-bottom:8px;">Recent Exports</div>
+        <div class="export-history-list" id="exportHistory">
+          <div style="font-size:12px;color:var(--text3);font-family:var(--font-mono);padding:8px 0;">No exports yet</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NOTIFICATIONS SETTINGS PANEL -->
+  <div class="card notif-settings-panel" style="animation:fadeUp 0.6s 0.55s ease both;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+      <div>
+        <div class="section-label">Alert System</div>
+        <div class="section-title" style="margin-bottom:0;">Notification Settings</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="notif-test-btn" onclick="fireTestNotif()">🔔 Test Alert</button>
+        <button class="push-enable-btn" onclick="requestPush()" id="pushBtn">📲 Enable Push</button>
+      </div>
+    </div>
+    <div class="notif-toggle-list">
+      <div class="notif-toggle-row">
+        <div class="notif-toggle-left">
+          <div class="notif-toggle-icon">🚨</div>
+          <div><div class="notif-toggle-name">Critical Anomalies</div><div class="notif-toggle-desc">Capacity exceeded, safety threshold alerts</div></div>
+        </div>
+        <div class="toggle-switch on" onclick="toggleNotif(this)" data-key="critical"><div class="toggle-thumb"></div></div>
+      </div>
+      <div class="notif-toggle-row">
+        <div class="notif-toggle-left">
+          <div class="notif-toggle-icon">👥</div>
+          <div><div class="notif-toggle-name">Occupancy Changes</div><div class="notif-toggle-desc">High / low traffic transitions</div></div>
+        </div>
+        <div class="toggle-switch on" onclick="toggleNotif(this)" data-key="occupancy"><div class="toggle-thumb"></div></div>
+      </div>
+      <div class="notif-toggle-row">
+        <div class="notif-toggle-left">
+          <div class="notif-toggle-icon">✨</div>
+          <div><div class="notif-toggle-name">Vibe Shifts</div><div class="notif-toggle-desc">Store atmosphere change detected</div></div>
+        </div>
+        <div class="toggle-switch on" onclick="toggleNotif(this)" data-key="vibe"><div class="toggle-thumb"></div></div>
+      </div>
+      <div class="notif-toggle-row">
+        <div class="notif-toggle-left">
+          <div class="notif-toggle-icon">🎵</div>
+          <div><div class="notif-toggle-name">Music Transitions</div><div class="notif-toggle-desc">Ambient audio mode changes</div></div>
+        </div>
+        <div class="toggle-switch" onclick="toggleNotif(this)" data-key="music"><div class="toggle-thumb"></div></div>
+      </div>
+      <div class="notif-toggle-row">
+        <div class="notif-toggle-left">
+          <div class="notif-toggle-icon">🤖</div>
+          <div><div class="notif-toggle-name">AI Insight Ready</div><div class="notif-toggle-desc">New AI recommendations available</div></div>
+        </div>
+        <div class="toggle-switch on" onclick="toggleNotif(this)" data-key="ai"><div class="toggle-thumb"></div></div>
+      </div>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <div class="dash-footer">
     <span>🔄 Auto-refresh · 3s interval</span>
@@ -947,6 +1342,9 @@ input[type=range] {
   </div>
 
 </main>
+
+<!-- NOTIFICATION TRAY -->
+<div class="notif-tray" id="notifTray"></div>
 
 <script>
 // ===================== THEME =====================
@@ -1322,21 +1720,73 @@ const MUSIC = {
 };
 const VIBE_N = {'Cozy & Premium':1,'Moderate & Buzzing':2,'Energetic & Crowded':3};
 
-// ===================== DATA FETCH =====================
+// ===================== DATA FETCH STATE =====================
 let prevAlerts=[], donutCounts=[0,0,0];
 
-async function fetchData(){
-  try {
-    const r=await fetch('/api/v1/store/vibe');
-    if(!r.ok) throw new Error('api');
-    const d=await r.json();
+// ===================== HEATMAP =====================
+let hmapMode = 'live';
+function setHmapMode(mode, btn) {
+  hmapMode = mode;
+  document.querySelectorAll('.hmap-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  updateHeatmap(lastCount);
+}
+let lastCount = 0;
+function updateHeatmap(count) {
+  lastCount = count;
+  const ZONE_BOXES = [
+    {id:'hz0', cx:90,  cy:265, maxPpl:8,  color:'110,181,255'},
+    {id:'hz1', cx:245, cy:260, maxPpl:10, color:'245,166,35'},
+    {id:'hz2', cx:390, cy:235, maxPpl:8,  color:'176,138,255'},
+    {id:'hz3', cx:145, cy:110, maxPpl:12, color:'255,85,119'},
+    {id:'hz4', cx:435, cy:80,  maxPpl:8,  color:'52,217,155'},
+  ];
+  const multiplier = hmapMode==='peak'?1.8 : hmapMode==='avg'?1.2 : 1;
+  let totalShown = 0;
+  const dotsGroup = document.getElementById('hmapDots');
+  let dots = '';
+  ZONE_BOXES.forEach((z,i)=>{
+    const ppl = Math.min(z.maxPpl, Math.max(0, Math.round(count * (0.08+Math.random()*0.28) * multiplier)));
+    totalShown += ppl;
+    const intensity = Math.min(1, ppl / z.maxPpl);
+    const el = document.getElementById(z.id);
+    if(el) el.style.opacity = 0.2 + intensity * 0.75;
+    document.getElementById(`hzc${i}`).textContent = `${ppl} people`;
+    // Draw people dots
+    for(let d=0; d<Math.min(ppl,8); d++) {
+      const jx = z.cx + (Math.random()-0.5)*60;
+      const jy = z.cy + (Math.random()-0.5)*40;
+      dots += `<circle cx="${jx.toFixed(1)}" cy="${jy.toFixed(1)}" r="4" fill="rgba(${z.color},0.85)" style="transition:all 1s ease"/>`;
+    }
+  });
+  dotsGroup.innerHTML = dots;
+  document.getElementById('hmapTotal').textContent = `${totalShown} total`;
+  // Animate heat blobs
+  ['hblob0','hblob1','hblob2'].forEach((id,i)=>{
+    const el = document.getElementById(id);
+    if(el) el.setAttribute('opacity', (0.2 + Math.min(0.7, count/15 * (0.6+i*0.1))).toFixed(2));
+  });
+}
 
+// ===================== DATA LOG (for exports) =====================
+const dataLog = [];
+let sessionStart = new Date();
+window._lastFetchResult = null;
+async function fetchData() {
+  try {
+    const r = await fetch('/api/v1/store/vibe');
+    if(!r.ok) throw new Error('api');
+    const d = await r.json();
     const count  = d.current_occupancy ?? 0;
     const vibe   = d.store_vibe ?? 'Cozy & Premium';
     const music  = d.ambient_music ?? '';
     const alerts = d.realtime_alerts ?? [];
     const now    = new Date();
     const ts     = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+    window._lastFetchResult = {count, vibe, music, alerts, ts, time: now};
+    dataLog.push({count, vibe, music, alerts, ts, time: now.toISOString()});
+    if(dataLog.length > 500) dataLog.shift();
 
     // KPIs
     document.getElementById('kpiOcc').textContent = count;
@@ -1349,7 +1799,6 @@ async function fetchData(){
     document.getElementById('kpiAlertBadge').textContent = alerts.length>0?'ACTION NEEDED':'ALL CLEAR';
     document.getElementById('kpiAlertBadge').className = 'kpi-badge '+(alerts.length>0?'down':'up');
 
-    // Anomaly
     const isAnomaly = count > 10;
     document.getElementById('anomalyBanner').classList.toggle('visible', isAnomaly);
     document.getElementById('hAnomaly').textContent = isAnomaly?'TRIGGERED':'CLEAR';
@@ -1357,7 +1806,6 @@ async function fetchData(){
     document.getElementById('hApi').className = 'health-badge hb-ok';
     document.getElementById('hTime').textContent = ts;
 
-    // Charts
     occData.push(count); occData.shift();
     occChart.data.datasets[0].data = [...occData];
     occChart.update('none');
@@ -1368,7 +1816,6 @@ async function fetchData(){
     vibeChart.data.datasets[0].backgroundColor = vibeData.map(vc);
     vibeChart.update('none');
 
-    // Donut
     donutCounts[vn-1]++;
     const total = donutCounts.reduce((a,b)=>a+b,0)||1;
     const p = donutCounts.map(v=>Math.round(v/total*100));
@@ -1377,13 +1824,16 @@ async function fetchData(){
     document.getElementById('donutNum').textContent = count;
     ['dl1','dl2','dl3'].forEach((id,i)=>document.getElementById(id).textContent=`${p[i]}%`);
 
-    // Music
     const mi = MUSIC[vibe]||MUSIC['Cozy & Premium'];
     document.getElementById('musicName').textContent = mi.name;
     document.getElementById('musicDesc').textContent = mi.desc;
-    if (vibe !== curVibe) { curVibe = vibe; if(soundOn) playAmbient(vibe); }
+    if (vibe !== curVibe) {
+      const oldVibe = curVibe; curVibe = vibe;
+      if(soundOn) playAmbient(vibe);
+      if(oldVibe && notifPrefs.vibe) showNotif('✨','Vibe Shift Detected',`Store atmosphere changed to "${vibe}"`,4000,'var(--purple)');
+      if(notifPrefs.music) showNotif('🎵','Music Transition',`Now playing: ${mi.name}`,3500,'var(--gold)');
+    }
 
-    // Zones
     ZONES.forEach((_,i)=>{
       const zc = Math.max(0,Math.round(count*(0.08+Math.random()*0.3)));
       const pct = Math.min(100,Math.round(zc/15*100));
@@ -1391,16 +1841,23 @@ async function fetchData(){
       document.getElementById(`zf${i}`).style.width = pct+'%';
     });
 
-    // Signals
     document.getElementById('sig0').textContent = `${Math.round(2+count*0.4)}min`;
     document.getElementById('sig1').textContent = `${Math.min(5,Math.round(count/3))} zones`;
     document.getElementById('sig2').textContent = `${Math.min(98,Math.round(40+count*3))}%`;
     document.getElementById('sig3').textContent = count>10?'Long':'Short';
     document.getElementById('sig4').textContent = count>10?'3+':count>5?'2':'1';
 
-    // Alerts
     const newA = alerts.filter(a=>!prevAlerts.includes(a));
-    if(newA.length>0) alertSound(newA.some(a=>a.toLowerCase().includes('critical'))?'critical':'warning');
+    if(newA.length>0) {
+      const hasCrit = newA.some(a=>a.toLowerCase().includes('critical'));
+      alertSound(hasCrit?'critical':'warning');
+      if(notifPrefs.critical && hasCrit) showNotif('🚨','Critical Anomaly',newA.find(a=>a.toLowerCase().includes('critical'))||newA[0],6000,'var(--red)');
+      else if(notifPrefs.occupancy) showNotif('👥','New Alert',newA[0],4000,'var(--amber)');
+    }
+    if(isAnomaly && !prevAlerts.some(a=>a.toLowerCase().includes('critical'))) {
+      if(notifPrefs.critical) showNotif('🚨','Capacity Alert','Store is at critical occupancy level',5000,'var(--red)');
+      tryBrowserPush('VibeSense Alert','Critical capacity threshold exceeded');
+    }
     prevAlerts = alerts;
     const sc = document.getElementById('alertScroll');
     document.getElementById('alertBadge').textContent = alerts.length;
@@ -1414,12 +1871,259 @@ async function fetchData(){
         }).join('');
 
     document.getElementById('footerTime').textContent = `Last updated: ${ts}`;
+    updateHeatmap(count);
   } catch(e){
     document.getElementById('hApi').textContent='OFFLINE';
     document.getElementById('hApi').className='health-badge hb-err';
   }
 }
 
+// ===================== AI INSIGHTS (Claude API) =====================
+let aiHistory = [];
+async function generateInsights() {
+  const btn = document.getElementById('aiBtn');
+  const out  = document.getElementById('aiOutput');
+  btn.disabled = true;
+  btn.textContent = '⟳ Analyzing...';
+  out.classList.add('loading');
+  out.innerHTML = '<div class="ai-placeholder" style="color:var(--text2)">✦ Claude is analyzing your store data...</div>';
+
+  const snap = window._lastFetchResult || {};
+  const logSample = dataLog.slice(-20);
+  const avgOcc = logSample.length ? Math.round(logSample.reduce((a,d)=>a+(d.count||0),0)/logSample.length) : 0;
+  const vibes  = logSample.map(d=>d.vibe).filter(Boolean);
+  const dominantVibe = vibes.sort((a,b)=>vibes.filter(v=>v===b).length-vibes.filter(v=>v===a).length)[0]||'Unknown';
+
+  const prompt = `You are VibeSense AI, an intelligent retail analytics assistant for a Purplle beauty store. Analyze this real-time store data and provide actionable insights:
+
+CURRENT DATA:
+- Live Occupancy: ${snap.count ?? '—'} people
+- Store Vibe: ${snap.vibe ?? '—'}
+- Ambient Music: ${snap.music ?? '—'}
+- Active Alerts: ${(snap.alerts||[]).join(', ')||'None'}
+- Session Avg Occupancy: ${avgOcc} people
+- Dominant Vibe (last 20 readings): ${dominantVibe}
+- Time: ${snap.ts ?? new Date().toLocaleTimeString()}
+
+Provide a concise analysis in this exact format:
+1. **Situation Summary** (2 sentences about current store state)
+2. **Staff Recommendation** (1 specific action)
+3. **Revenue Opportunity** (1 specific tip)
+4. **Music/Ambiance Suggestion** (1 specific recommendation)
+5. **Predicted Next 30 min** (brief forecast)
+
+Keep each point to 1-2 sentences. Be specific and actionable. Reference actual numbers.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user', content:prompt}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.map(c=>c.text||'').join('') || 'No response received.';
+
+    // Render with markdown-lite
+    const html = text
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+      .replace(/^(\d+\.\s)/gm,'<br><span style="color:var(--gold);font-weight:700">$1</span>')
+      .replace(/\n/g,'<br>');
+
+    out.classList.remove('loading');
+    out.innerHTML = `<div style="line-height:1.9;">${html}</div>`;
+
+    // Quick insight chips
+    const chips = [
+      {icon:'👥', label:'Occupancy',  val: snap.count>10?'Critical':snap.count>5?'Moderate':'Low'},
+      {icon:'🎯', label:'Action',     val: snap.count>10?'Add Staff':'Monitor'},
+      {icon:'📈', label:'Est. Sales', val: `₹${(2000+((snap.count||0)*800)).toLocaleString('en-IN')}`},
+    ];
+    document.getElementById('aiChips').innerHTML = chips.map(c=>`
+      <div class="ai-insight-chip">
+        <div class="ai-chip-icon">${c.icon}</div>
+        <div class="ai-chip-label">${c.label}</div>
+        <div class="ai-chip-val">${c.val}</div>
+      </div>`).join('');
+
+    // Save to history
+    const ts = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    aiHistory.unshift({text: text.substring(0,120)+'…', ts});
+    if(aiHistory.length>5) aiHistory.pop();
+    const hist = document.getElementById('aiHistory');
+    hist.style.display='block';
+    document.getElementById('aiHistoryList').innerHTML = aiHistory.map(h=>`
+      <div class="ai-history-item" onclick="document.getElementById('aiOutput').innerHTML='<div style=line-height:1.9>${h.text.replace(/'/g,"&#39;")}</div>'">
+        <div>${h.text}</div>
+        <div class="ai-history-ts">${h.ts}</div>
+      </div>`).join('');
+
+    if(notifPrefs.ai) showNotif('🤖','AI Insight Ready','New store recommendations available',4000,'var(--purple)');
+    tryBrowserPush('VibeSense AI','New store insights are ready to review');
+
+  } catch(e) {
+    out.classList.remove('loading');
+    out.innerHTML = `<div style="color:var(--red);font-family:var(--font-mono);font-size:12px;">⚠ Could not connect to Claude API. Check your API key or network.<br><small style="color:var(--text3)">${e.message}</small></div>`;
+  }
+  btn.disabled=false;
+  btn.textContent='✦ Generate Insights';
+}
+
+// ===================== EXPORT =====================
+let exportCache = [];
+function dl(content, filename, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content],{type:mime}));
+  a.download = filename; a.click();
+}
+function addExportHistory(name, size, data, filename, mime) {
+  const ts = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  exportCache.push({name, size, data, filename, mime, ts});
+  const list = document.getElementById('exportHistory');
+  list.innerHTML = exportCache.slice().reverse().map((e,i)=>`
+    <div class="export-hist-row">
+      <span class="export-hist-name">${e.name}</span>
+      <span class="export-hist-meta">${e.ts} · ${e.size}</span>
+      <button class="export-dl-btn" onclick="dl(exportCache[${exportCache.length-1-i}].data, exportCache[${exportCache.length-1-i}].filename, exportCache[${exportCache.length-1-i}].mime)">↓</button>
+    </div>`).join('');
+}
+function exportCSV() {
+  const rows = [['Timestamp','Occupancy','Vibe','Music','Alerts']];
+  dataLog.forEach(d=>rows.push([d.time,d.count,d.vibe,d.music,(d.alerts||[]).join(';')]));
+  const csv = rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const fname = `vibesense-${Date.now()}.csv`;
+  dl(csv, fname, 'text/csv');
+  addExportHistory('CSV Export', `${(csv.length/1024).toFixed(1)}KB`, csv, fname, 'text/csv');
+  showNotif('📊','Export Ready',`CSV with ${dataLog.length} records downloaded`,3000,'var(--green)');
+}
+function exportJSON() {
+  const snap = window._lastFetchResult||{};
+  const payload = {
+    exported_at: new Date().toISOString(),
+    session_start: sessionStart.toISOString(),
+    current: snap,
+    log: dataLog,
+    summary: {
+      total_readings: dataLog.length,
+      avg_occupancy: dataLog.length ? Math.round(dataLog.reduce((a,d)=>a+(d.count||0),0)/dataLog.length):0,
+    }
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const fname = `vibesense-session-${Date.now()}.json`;
+  dl(json, fname, 'application/json');
+  addExportHistory('JSON Session', `${(json.length/1024).toFixed(1)}KB`, json, fname, 'application/json');
+  showNotif('📦','Export Ready','Full JSON session dump downloaded',3000,'var(--green)');
+}
+function exportReport() {
+  const snap = window._lastFetchResult||{};
+  const avg = dataLog.length ? Math.round(dataLog.reduce((a,d)=>a+(d.count||0),0)/dataLog.length):0;
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>VibeSense Report</title>
+<style>body{font-family:Georgia,serif;max-width:820px;margin:40px auto;color:#1a1810;background:#f8f5ef;padding:40px}
+h1{font-size:32px;color:#9a7820;border-bottom:2px solid #d4af50;padding-bottom:12px}
+h2{font-size:18px;margin-top:28px;color:#333}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th{background:#9a7820;color:#fff;padding:8px 12px;text-align:left;font-size:12px}
+td{padding:7px 12px;border-bottom:1px solid #e8e4dc;font-size:12px;font-family:monospace}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:20px 0}
+.kpi-box{background:#fff;border:1px solid #e8e4dc;border-radius:10px;padding:16px;text-align:center}
+.kpi-num{font-size:28px;font-weight:700;color:#9a7820}
+.kpi-lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+footer{margin-top:40px;font-size:11px;color:#aaa;text-align:center;border-top:1px solid #e8e4dc;padding-top:12px}
+</style></head><body>
+<h1>VibeSense AI — Store Intelligence Report</h1>
+<p style="color:#888;font-family:monospace;font-size:12px">Generated: ${new Date().toLocaleString('en-IN')} · Session started: ${sessionStart.toLocaleTimeString('en-IN')}</p>
+<div class="kpi-row">
+  <div class="kpi-box"><div class="kpi-num">${snap.count??0}</div><div class="kpi-lbl">Live Occupancy</div></div>
+  <div class="kpi-box"><div class="kpi-num">${avg}</div><div class="kpi-lbl">Session Avg</div></div>
+  <div class="kpi-box"><div class="kpi-num">${dataLog.length}</div><div class="kpi-lbl">Data Points</div></div>
+</div>
+<h2>Current State</h2>
+<table><tr><th>Metric</th><th>Value</th></tr>
+<tr><td>Store Vibe</td><td>${snap.vibe??'—'}</td></tr>
+<tr><td>Ambient Music</td><td>${snap.music??'—'}</td></tr>
+<tr><td>Active Alerts</td><td>${(snap.alerts||[]).join(', ')||'None'}</td></tr>
+</table>
+<h2>Occupancy Log (Last 50 readings)</h2>
+<table><tr><th>Time</th><th>Occupancy</th><th>Vibe</th><th>Music</th></tr>
+${dataLog.slice(-50).reverse().map(d=>`<tr><td>${d.ts}</td><td>${d.count}</td><td>${d.vibe}</td><td>${d.music}</td></tr>`).join('')}
+</table>
+<footer>VibeSense AI · Purplle Tech Challenge 2026 · Auto-generated report</footer>
+</body></html>`;
+  const fname = `vibesense-report-${Date.now()}.html`;
+  dl(html, fname, 'text/html');
+  addExportHistory('HTML Report', `${(html.length/1024).toFixed(1)}KB`, html, fname, 'text/html');
+  showNotif('📋','Report Ready','Printable HTML report downloaded',3000,'var(--green)');
+}
+
+// ===================== NOTIFICATIONS =====================
+let notifPrefs = { critical:true, occupancy:true, vibe:true, music:false, ai:true };
+function toggleNotif(el) {
+  el.classList.toggle('on');
+  const key = el.dataset.key;
+  notifPrefs[key] = el.classList.contains('on');
+}
+function showNotif(icon, title, msg, duration=4000, color='var(--gold)') {
+  const tray = document.getElementById('notifTray');
+  const card = document.createElement('div');
+  card.className = 'notif-card';
+  const barColor = color.replace('var(','').replace(')','');
+  card.innerHTML = `
+    <div class="notif-icon">${icon}</div>
+    <div class="notif-body">
+      <div class="notif-title" style="color:${color}">${title}</div>
+      <div class="notif-msg">${msg}</div>
+      <div class="notif-time">${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div>
+    </div>
+    <button class="notif-close" onclick="dismissNotif(this.closest('.notif-card'))">✕</button>
+    <div class="notif-progress" style="background:${color};--dur:${duration}ms;"></div>
+  `;
+  tray.appendChild(card);
+  setTimeout(()=>dismissNotif(card), duration);
+}
+function dismissNotif(card) {
+  if(!card||!card.parentNode) return;
+  card.classList.add('out');
+  setTimeout(()=>card.remove(), 300);
+}
+function fireTestNotif() {
+  showNotif('🔔','Test Notification','VibeSense alert system is working correctly!',4000,'var(--gold)');
+  showNotif('👥','Occupancy Alert','Store traffic just crossed moderate threshold',3500,'var(--amber)');
+}
+
+// ===================== BROWSER PUSH =====================
+let pushGranted = false;
+async function requestPush() {
+  if(!('Notification' in window)) {
+    showNotif('❌','Not Supported','Your browser does not support push notifications',3000,'var(--red)');
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  pushGranted = perm === 'granted';
+  const btn = document.getElementById('pushBtn');
+  if(pushGranted) {
+    btn.textContent = '✅ Push Enabled';
+    btn.style.background = 'var(--greenDim)';
+    btn.style.color = 'var(--green)';
+    btn.style.borderColor = 'rgba(52,217,155,0.3)';
+    showNotif('📲','Push Enabled','Browser notifications are now active',3000,'var(--green)');
+    new Notification('VibeSense AI',{body:'Real-time store alerts are now enabled!',icon:'/favicon.ico'});
+  } else {
+    showNotif('❌','Permission Denied','Enable notifications in browser settings',4000,'var(--red)');
+  }
+}
+function tryBrowserPush(title, body) {
+  if(pushGranted && Notification.permission==='granted') {
+    new Notification(title,{body, icon:'/favicon.ico'});
+  }
+}
+function checkNotifications(data) {
+  if(!data) return;
+}
+
+// Start
 fetchData();
 setInterval(fetchData, 3000);
 </script>
