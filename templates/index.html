@@ -1894,38 +1894,27 @@ async function generateInsights() {
   const vibes  = logSample.map(d=>d.vibe).filter(Boolean);
   const dominantVibe = vibes.sort((a,b)=>vibes.filter(v=>v===b).length-vibes.filter(v=>v===a).length)[0]||'Unknown';
 
-  const prompt = `You are VibeSense AI, an intelligent retail analytics assistant for a Purplle beauty store. Analyze this real-time store data and provide actionable insights:
-
-CURRENT DATA:
-- Live Occupancy: ${snap.count ?? '—'} people
-- Store Vibe: ${snap.vibe ?? '—'}
-- Ambient Music: ${snap.music ?? '—'}
-- Active Alerts: ${(snap.alerts||[]).join(', ')||'None'}
-- Session Avg Occupancy: ${avgOcc} people
-- Dominant Vibe (last 20 readings): ${dominantVibe}
-- Time: ${snap.ts ?? new Date().toLocaleTimeString()}
-
-Provide a concise analysis in this exact format:
-1. **Situation Summary** (2 sentences about current store state)
-2. **Staff Recommendation** (1 specific action)
-3. **Revenue Opportunity** (1 specific tip)
-4. **Music/Ambiance Suggestion** (1 specific recommendation)
-5. **Predicted Next 30 min** (brief forecast)
-
-Keep each point to 1-2 sentences. Be specific and actionable. Reference actual numbers.`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+    const res = await fetch('/api/v1/ai/insights', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        messages:[{role:'user', content:prompt}]
+        count:         snap.count   ?? 0,
+        vibe:          snap.vibe    ?? '',
+        music:         snap.music   ?? '',
+        alerts:        snap.alerts  ?? [],
+        avg_occupancy: avgOcc,
+        dominant_vibe: dominantVibe,
+        timestamp:     snap.ts ?? new Date().toLocaleTimeString()
       })
     });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.detail || `Server error ${res.status}`);
+    }
     const data = await res.json();
-    const text = data.content?.map(c=>c.text||'').join('') || 'No response received.';
+    const text = data.insight || 'No response received.';
 
     // Render with markdown-lite
     const html = text
