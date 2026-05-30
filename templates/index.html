@@ -1,1451 +1,1427 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VibeSense AI - Live Analytics Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    :root {
-      --bg: #080c14;
-      --surface: #0d1422;
-      --surface2: #111b2e;
-      --border: rgba(99, 136, 255, 0.12);
-      --accent: #6c8fff;
-      --accent2: #a855f7;
-      --green: #22d3a0;
-      --red: #ff4d6a;
-      --amber: #f59e0b;
-      --text: #e2e8f8;
-      --muted: #5a6a8a;
-      --font-display: 'Syne', sans-serif;
-      --font-mono: 'DM Mono', monospace;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>VibeSense AI — Retail Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ===================== TOKENS ===================== */
+:root {
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans:  'Outfit', sans-serif;
+  --font-mono:  'JetBrains Mono', monospace;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* DARK THEME */
+[data-theme="dark"] {
+  --bg:         #09090f;
+  --bg2:        #0f0f1a;
+  --surface:    rgba(255,255,255,0.04);
+  --surface2:   rgba(255,255,255,0.07);
+  --surfaceHover: rgba(255,255,255,0.09);
+  --border:     rgba(255,255,255,0.08);
+  --borderHov:  rgba(212,175,80,0.35);
+  --text:       #f0ede8;
+  --text2:      #8a8898;
+  --text3:      #55546a;
+  --gold:       #d4af50;
+  --goldLight:  #f0d080;
+  --goldDim:    rgba(212,175,80,0.15);
+  --green:      #34d99b;
+  --greenDim:   rgba(52,217,155,0.12);
+  --red:        #ff5577;
+  --redDim:     rgba(255,85,119,0.12);
+  --amber:      #f5a623;
+  --amberDim:   rgba(245,166,35,0.12);
+  --blue:       #6eb5ff;
+  --blueDim:    rgba(110,181,255,0.12);
+  --purple:     #b08aff;
+  --purpleDim:  rgba(176,138,255,0.12);
+  --glow1: radial-gradient(ellipse 800px 400px at 20% 10%, rgba(212,175,80,0.06) 0%, transparent 70%);
+  --glow2: radial-gradient(ellipse 600px 500px at 80% 90%, rgba(110,181,255,0.05) 0%, transparent 70%);
+  --nav-bg: rgba(9,9,15,0.85);
+  --modal-bg: rgba(5,5,10,0.9);
+  --chart-grid: rgba(255,255,255,0.05);
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --shadow-lg: 0 24px 64px rgba(0,0,0,0.6);
+}
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-display);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+/* LIGHT THEME */
+[data-theme="light"] {
+  --bg:         #f8f5ef;
+  --bg2:        #f0ece3;
+  --surface:    rgba(255,255,255,0.7);
+  --surface2:   rgba(255,255,255,0.9);
+  --surfaceHover: rgba(255,255,255,0.95);
+  --border:     rgba(0,0,0,0.08);
+  --borderHov:  rgba(160,120,20,0.4);
+  --text:       #1a1810;
+  --text2:      #6b6455;
+  --text3:      #aaa090;
+  --gold:       #9a7820;
+  --goldLight:  #c09830;
+  --goldDim:    rgba(154,120,32,0.1);
+  --green:      #1a9e6a;
+  --greenDim:   rgba(26,158,106,0.1);
+  --red:        #d93355;
+  --redDim:     rgba(217,51,85,0.1);
+  --amber:      #c07810;
+  --amberDim:   rgba(192,120,16,0.1);
+  --blue:       #2878cc;
+  --blueDim:    rgba(40,120,204,0.1);
+  --purple:     #7050cc;
+  --purpleDim:  rgba(112,80,204,0.1);
+  --glow1: radial-gradient(ellipse 800px 400px at 20% 10%, rgba(154,120,32,0.08) 0%, transparent 70%);
+  --glow2: radial-gradient(ellipse 600px 500px at 80% 90%, rgba(40,120,204,0.06) 0%, transparent 70%);
+  --nav-bg: rgba(248,245,239,0.88);
+  --modal-bg: rgba(240,236,227,0.92);
+  --chart-grid: rgba(0,0,0,0.06);
+  --shadow: 0 8px 32px rgba(0,0,0,0.1);
+  --shadow-lg: 0 24px 64px rgba(0,0,0,0.18);
+}
 
-    /* Ambient background glow */
-    body::before {
-      content: '';
-      position: fixed;
-      top: -200px; left: -200px;
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(108,143,255,0.07) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-    body::after {
-      content: '';
-      position: fixed;
-      bottom: -200px; right: -200px;
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(168,85,247,0.06) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
+/* ===================== RESET ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* NAV */
-    nav {
-      position: sticky; top: 0; z-index: 100;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 32px;
-      height: 60px;
-      background: rgba(8,12,20,0.85);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-    }
+html { scroll-behavior: smooth; }
 
-    .logo {
-      font-size: 18px; font-weight: 800; letter-spacing: -0.5px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .logo span { color: var(--accent2); }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background var(--transition), color var(--transition);
+}
 
-    .nav-right { display: flex; align-items: center; gap: 16px; }
+/* Ambient glow layers */
+body::before, body::after {
+  content: ''; position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+}
+body::before { background: var(--glow1); }
+body::after  { background: var(--glow2); }
 
-    .live-pill {
-      display: flex; align-items: center; gap: 7px;
-      padding: 5px 14px; border-radius: 100px;
-      background: rgba(34,211,160,0.1);
-      border: 1px solid rgba(34,211,160,0.3);
-      font-size: 12px; font-weight: 600;
-      color: var(--green); font-family: var(--font-mono);
-    }
-    .live-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--green);
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.8); }
-    }
+/* Noise texture overlay */
+body > .noise {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.4;
+}
 
-    .btn-stream {
-      padding: 7px 18px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      font-family: var(--font-display);
-      font-size: 13px; font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-stream:hover { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+/* ===================== NAV ===================== */
+nav {
+  position: sticky; top: 0; z-index: 200;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(24px) saturate(1.8);
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+}
 
-    /* MAIN LAYOUT */
-    main {
-      position: relative; z-index: 1;
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 28px 24px 48px;
-      display: flex; flex-direction: column; gap: 24px;
-    }
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-serif);
+  font-size: 20px; font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.logo-badge {
+  font-family: var(--font-mono);
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--gold);
+  background: var(--goldDim);
+  border: 1px solid rgba(212,175,80,0.25);
+  padding: 3px 8px; border-radius: 4px;
+}
 
-    /* SECTION HEADER */
-    .section-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 2px;
-      color: var(--muted); text-transform: uppercase;
-      font-family: var(--font-mono);
-      margin-bottom: 12px;
-    }
+.nav-right { display: flex; align-items: center; gap: 12px; }
 
-    /* CARDS ROW */
-    .cards-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-    }
+.live-indicator {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 14px; border-radius: 100px;
+  background: var(--greenDim);
+  border: 1px solid rgba(52,217,155,0.2);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  color: var(--green); letter-spacing: 1px;
+}
+.pulse-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green);
+  animation: pulseDot 2s ease infinite;
+}
+@keyframes pulseDot {
+  0%,100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(52,217,155,0.4); }
+  50% { transform: scale(1.1); opacity: 0.8; box-shadow: 0 0 0 4px rgba(52,217,155,0); }
+}
 
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 22px 24px;
-      transition: border-color 0.3s, transform 0.2s;
-      position: relative;
-      overflow: hidden;
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: var(--card-accent, var(--accent));
-      opacity: 0.6;
-    }
-    .card:hover { border-color: rgba(99,136,255,0.3); transform: translateY(-2px); }
+.icon-btn {
+  width: 38px; height: 38px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text2); cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+}
+.icon-btn:hover { background: var(--surfaceHover); color: var(--text); border-color: var(--borderHov); }
 
-    .card-label {
-      font-size: 10px; letter-spacing: 1.5px; font-weight: 700;
-      color: var(--muted); text-transform: uppercase;
-      font-family: var(--font-mono);
-      margin-bottom: 10px;
-    }
-    .card-value {
-      font-size: 36px; font-weight: 800; line-height: 1;
-      color: var(--card-color, var(--text));
-    }
-    .card-sub {
-      font-size: 12px; color: var(--muted); margin-top: 6px;
-      font-family: var(--font-mono);
-    }
-    .card-icon {
-      position: absolute; top: 20px; right: 20px;
-      font-size: 22px; opacity: 0.25;
-    }
+.stream-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 18px; border-radius: var(--radius-sm);
+  background: var(--gold); border: none;
+  color: #0a0800; font-family: var(--font-sans);
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: all var(--transition);
+  letter-spacing: 0.2px;
+}
+.stream-btn:hover { background: var(--goldLight); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(212,175,80,0.35); }
 
-    /* MIDDLE ROW: chart + alerts */
-    .mid-row {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 16px;
-    }
+/* ===================== MAIN LAYOUT ===================== */
+main {
+  position: relative; z-index: 2;
+  max-width: 1400px; margin: 0 auto;
+  padding: 32px 28px 64px;
+  display: flex; flex-direction: column; gap: 28px;
+}
 
-    .chart-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-    }
-    .chart-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 20px;
-    }
-    .chart-title { font-size: 15px; font-weight: 700; }
-    .chart-badge {
-      font-size: 11px; padding: 3px 10px; border-radius: 100px;
-      background: rgba(108,143,255,0.1);
-      color: var(--accent);
-      font-family: var(--font-mono); font-weight: 500;
-    }
-    .chart-wrap { height: 200px; }
+/* Page header */
+.page-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  animation: fadeUp 0.6s ease both;
+}
+.page-title {
+  font-family: var(--font-serif);
+  font-size: 32px; font-weight: 700;
+  line-height: 1.1; letter-spacing: -0.5px;
+}
+.page-title span { color: var(--gold); }
+.page-sub {
+  font-size: 13px; color: var(--text2);
+  margin-top: 6px; font-weight: 400;
+}
+.time-display {
+  text-align: right;
+  font-family: var(--font-mono);
+}
+.time-clock {
+  font-size: 28px; font-weight: 300;
+  color: var(--text); letter-spacing: 2px;
+}
+.time-date { font-size: 11px; color: var(--text2); margin-top: 2px; letter-spacing: 1px; }
 
-    /* ALERTS PANEL */
-    .alerts-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      display: flex; flex-direction: column;
-      overflow: hidden;
-    }
-    .alerts-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    .alerts-title { font-size: 15px; font-weight: 700; }
-    .alerts-count {
-      font-family: var(--font-mono); font-size: 12px;
-      color: var(--muted);
-    }
-    .alerts-list {
-      display: flex; flex-direction: column; gap: 10px;
-      flex: 1; overflow-y: auto;
-      scrollbar-width: none;
-    }
-    .alert-item {
-      display: flex; gap: 12px; align-items: flex-start;
-      padding: 12px 14px;
-      border-radius: 10px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      animation: slideIn 0.4s ease;
-    }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(10px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-    .alert-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      margin-top: 4px; flex-shrink: 0;
-    }
-    .alert-dot.critical { background: var(--red); box-shadow: 0 0 8px var(--red); }
-    .alert-dot.warning { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
-    .alert-dot.info { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-    .alert-text { font-size: 12.5px; line-height: 1.5; color: var(--text); font-family: var(--font-mono); }
-    .alert-time { font-size: 10px; color: var(--muted); margin-top: 2px; font-family: var(--font-mono); }
+/* ===================== GLASS CARD ===================== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(12px);
+  transition: all var(--transition);
+  position: relative; overflow: hidden;
+}
+.card:hover {
+  border-color: var(--borderHov);
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,175,80,0.3), transparent);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.card:hover::before { opacity: 1; }
 
-    /* BOTTOM ROW */
-    .bottom-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 16px;
-    }
+/* ===================== ANOMALY BANNER ===================== */
+.anomaly-banner {
+  display: none;
+  align-items: center; gap: 14px;
+  padding: 14px 22px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(255,85,119,0.1), rgba(255,85,119,0.05));
+  border: 1px solid rgba(255,85,119,0.3);
+  animation: fadeUp 0.3s ease both;
+}
+.anomaly-banner.visible { display: flex; }
+.anomaly-icon { font-size: 20px; animation: shake 0.4s ease infinite alternate; }
+@keyframes shake { from { transform: rotate(-8deg) scale(1.1); } to { transform: rotate(8deg) scale(0.9); } }
+.anomaly-text { flex: 1; font-size: 13px; font-weight: 600; color: var(--red); }
+.anomaly-sub { font-size: 11px; color: var(--red); opacity: 0.7; margin-top: 2px; font-family: var(--font-mono); }
+.anomaly-btn {
+  padding: 6px 16px; border-radius: 8px;
+  background: var(--redDim); border: 1px solid rgba(255,85,119,0.3);
+  color: var(--red); font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all var(--transition);
+}
+.anomaly-btn:hover { background: rgba(255,85,119,0.2); }
 
-    /* ZONE HEATMAP */
-    .zone-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-    }
-    .zone-list { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
-    .zone-row { display: flex; flex-direction: column; gap: 6px; }
-    .zone-info { display: flex; justify-content: space-between; align-items: center; }
-    .zone-name { font-size: 13px; font-weight: 600; }
-    .zone-count { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
-    .zone-bar-bg {
-      height: 6px; border-radius: 3px;
-      background: var(--surface2);
-      overflow: hidden;
-    }
-    .zone-bar {
-      height: 100%; border-radius: 3px;
-      transition: width 1s ease;
-    }
+/* ===================== KPI CARDS ===================== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+.kpi-card {
+  padding: 22px 22px 18px;
+  cursor: default;
+}
+.kpi-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.kpi-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text2);
+  font-family: var(--font-mono);
+}
+.kpi-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  background: var(--surface2);
+}
+.kpi-value {
+  font-family: var(--font-serif);
+  font-size: 38px; font-weight: 700; line-height: 1;
+  letter-spacing: -1px;
+}
+.kpi-value.md { font-size: 22px; padding-top: 6px; line-height: 1.2; font-weight: 600; font-family: var(--font-sans); }
+.kpi-value.sm { font-size: 14px; padding-top: 4px; line-height: 1.4; font-weight: 500; font-family: var(--font-sans); }
+.kpi-footer {
+  margin-top: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.kpi-badge {
+  font-size: 10px; font-family: var(--font-mono); font-weight: 500;
+  padding: 2px 8px; border-radius: 100px;
+}
+.kpi-badge.up   { background: var(--greenDim); color: var(--green); }
+.kpi-badge.down { background: var(--redDim);   color: var(--red); }
+.kpi-badge.neu  { background: var(--amberDim); color: var(--amber); }
+.kpi-badge.info { background: var(--blueDim);  color: var(--blue); }
+.kpi-delta { font-size: 11px; color: var(--text3); }
 
-    /* MUSIC CARD */
-    .music-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      position: relative;
-      overflow: hidden;
-    }
-    .music-visual {
-      display: flex; align-items: flex-end; gap: 4px;
-      height: 48px; margin: 20px 0 16px;
-    }
-    .bar-vis {
-      flex: 1; border-radius: 3px 3px 0 0;
-      background: linear-gradient(to top, var(--accent2), var(--accent));
-      animation: barAnim var(--dur, 0.8s) ease-in-out infinite alternate;
-      min-height: 4px;
-    }
-    @keyframes barAnim {
-      from { height: var(--min, 20%); }
-      to { height: var(--max, 80%); }
-    }
-    .music-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
-    .music-sub { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
-    .music-tag {
-      display: inline-block; margin-top: 12px;
-      padding: 4px 12px; border-radius: 100px;
-      background: rgba(168,85,247,0.12);
-      color: var(--accent2); font-size: 11px;
-      font-family: var(--font-mono); font-weight: 500;
-      border: 1px solid rgba(168,85,247,0.25);
-    }
+/* ===================== MID ROW ===================== */
+.mid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 340px;
+  gap: 16px;
+  animation: fadeUp 0.6s 0.2s ease both;
+}
 
-    /* SYSTEM STATUS */
-    .status-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-    }
-    .status-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
-    .status-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 14px;
-      background: var(--surface2);
-      border-radius: 10px;
-      border: 1px solid var(--border);
-    }
-    .status-name { font-size: 13px; font-weight: 600; }
-    .status-badge {
-      font-family: var(--font-mono); font-size: 11px;
-      padding: 3px 10px; border-radius: 100px;
-    }
-    .status-badge.ok { background: rgba(34,211,160,0.12); color: var(--green); border: 1px solid rgba(34,211,160,0.25); }
-    .status-badge.warn { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
-    .status-badge.err { background: rgba(255,77,106,0.12); color: var(--red); border: 1px solid rgba(255,77,106,0.25); }
+.chart-card { padding: 24px; }
+.chart-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.chart-title { font-size: 15px; font-weight: 600; }
+.chart-subtitle { font-size: 11px; color: var(--text2); font-family: var(--font-mono); margin-top: 2px; }
+.chart-legend {
+  display: flex; gap: 12px;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--text2); font-family: var(--font-mono);
+}
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+.chart-wrap { height: 180px; }
 
-    /* MOOD HISTORY (mini chart row) */
-    .mood-row {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-    }
-    .mood-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 16px;
-    }
-    .mood-chips { display: flex; gap: 8px; flex-wrap: wrap; }
-    .mood-chip {
-      padding: 4px 14px; border-radius: 100px;
-      font-size: 12px; font-weight: 600;
-      font-family: var(--font-mono);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      transition: all 0.3s;
-    }
-    .mood-chip.active { color: var(--text); border-color: var(--accent); background: rgba(108,143,255,0.12); }
-    .mood-wrap { height: 100px; }
+/* ===================== ALERTS PANEL ===================== */
+.alerts-panel { padding: 22px; display: flex; flex-direction: column; }
+.alerts-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.alerts-title { font-size: 15px; font-weight: 600; }
+.alerts-badge {
+  font-family: var(--font-mono); font-size: 11px;
+  padding: 3px 10px; border-radius: 100px;
+  background: var(--surface2); color: var(--text2);
+}
+.alerts-scroll {
+  flex: 1; overflow-y: auto; scrollbar-width: none;
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 240px;
+}
+.alert-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 11px 13px; border-radius: var(--radius-sm);
+  background: var(--surface2); border: 1px solid var(--border);
+  transition: all var(--transition);
+  animation: alertIn 0.35s ease both;
+}
+@keyframes alertIn { from { opacity:0; transform: translateX(8px); } to { opacity:1; transform: translateX(0); } }
+.alert-row:hover { border-color: var(--borderHov); }
+.alert-pip {
+  width: 7px; height: 7px; border-radius: 50%;
+  margin-top: 4px; flex-shrink: 0;
+}
+.pip-crit  { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+.pip-warn  { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.pip-info  { background: var(--blue);  box-shadow: 0 0 6px var(--blue); }
+.alert-body { flex: 1; }
+.alert-msg  { font-size: 12px; line-height: 1.5; font-weight: 500; }
+.alert-meta { font-size: 10px; color: var(--text2); font-family: var(--font-mono); margin-top: 2px; }
+.no-alerts  { padding: 32px 0; text-align: center; color: var(--text3); font-size: 13px; }
 
-    /* LAST UPDATED */
-    .footer-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 20px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
-    }
-    .footer-bar span { display: flex; align-items: center; gap: 6px; }
+/* ===================== BOTTOM GRID ===================== */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 16px;
+  animation: fadeUp 0.6s 0.3s ease both;
+}
 
-    /* ANOMALY FLAG */
-    .anomaly-banner {
-      display: none;
-      align-items: center; gap: 12px;
-      padding: 12px 20px;
-      background: rgba(255,77,106,0.08);
-      border: 1px solid rgba(255,77,106,0.3);
-      border-radius: 12px;
-      font-size: 13px; font-weight: 600;
-      color: var(--red);
-    }
-    .anomaly-banner.visible { display: flex; }
-    .anomaly-icon { font-size: 18px; animation: shake 0.5s infinite alternate; }
-    @keyframes shake {
-      from { transform: rotate(-5deg); }
-      to { transform: rotate(5deg); }
-    }
+/* Zone heatmap */
+.zone-card { padding: 22px; }
+.section-label {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--text3); margin-bottom: 4px;
+}
+.section-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+.zone-list { display: flex; flex-direction: column; gap: 11px; }
+.zone-row {}
+.zone-info { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.zone-name { font-size: 12px; font-weight: 500; }
+.zone-pct  { font-family: var(--font-mono); font-size: 11px; color: var(--text2); }
+.zone-track {
+  height: 5px; border-radius: 3px;
+  background: var(--surface2); overflow: hidden;
+}
+.zone-fill {
+  height: 100%; border-radius: 3px;
+  transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+}
 
-    /* Responsive */
-    @media (max-width: 1024px) {
-      .cards-row { grid-template-columns: repeat(2, 1fr); }
-      .mid-row { grid-template-columns: 1fr; }
-      .bottom-row { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 640px) {
-      .cards-row { grid-template-columns: 1fr 1fr; }
-      .bottom-row { grid-template-columns: 1fr; }
-      nav { padding: 0 16px; }
-      main { padding: 16px 12px 32px; }
-    }
+/* Music card */
+.music-card { padding: 22px; }
+.music-bars {
+  display: flex; align-items: flex-end; gap: 3px;
+  height: 44px; margin: 14px 0 16px;
+}
+.mbar {
+  flex: 1; border-radius: 2px 2px 0 0;
+  min-height: 4px;
+  animation: mbarAnim var(--d,0.8s) ease-in-out infinite alternate;
+  animation-delay: var(--dl, 0s);
+}
+@keyframes mbarAnim {
+  from { height: var(--h1,20%); opacity: 0.6; }
+  to   { height: var(--h2,80%); opacity: 1; }
+}
+.music-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.music-desc { font-size: 12px; color: var(--text2); }
+.music-controls {
+  display: flex; align-items: center; gap: 10px; margin-top: 14px;
+}
+.music-btn-wrap {
+  display: flex; align-items: center; gap: 6px;
+}
+.sound-toggle {
+  padding: 6px 14px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text2); font-family: var(--font-sans);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all var(--transition);
+}
+.sound-toggle.on { background: var(--greenDim); border-color: rgba(52,217,155,0.3); color: var(--green); }
+.vol-wrap { display: flex; align-items: center; gap: 6px; flex: 1; }
+.vol-label { font-size: 11px; color: var(--text3); font-family: var(--font-mono); }
+input[type=range] {
+  flex: 1; height: 4px; border-radius: 2px;
+  accent-color: var(--gold); cursor: pointer;
+  background: var(--surface2);
+}
 
-    /* ===== STREAM MODAL ===== */
-    .modal-overlay {
-      display: none;
-      position: fixed; inset: 0; z-index: 999;
-      background: rgba(4,7,14,0.92);
-      backdrop-filter: blur(12px);
-      align-items: center; justify-content: center;
-      animation: fadeIn 0.2s ease;
-    }
-    .modal-overlay.open { display: flex; }
-    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+/* System health */
+.health-card { padding: 22px; }
+.health-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.health-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 12px; border-radius: var(--radius-sm);
+  background: var(--surface2); border: 1px solid var(--border);
+  transition: all var(--transition);
+}
+.health-row:hover { border-color: var(--borderHov); }
+.health-name { font-size: 12px; font-weight: 500; }
+.health-badge {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  padding: 2px 9px; border-radius: 100px; letter-spacing: 0.5px;
+}
+.hb-ok   { background: var(--greenDim); color: var(--green); border: 1px solid rgba(52,217,155,0.2); }
+.hb-warn { background: var(--amberDim); color: var(--amber); border: 1px solid rgba(245,166,35,0.2); }
+.hb-err  { background: var(--redDim);   color: var(--red);   border: 1px solid rgba(255,85,119,0.2); }
 
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      width: min(960px, 95vw);
-      max-height: 92vh;
-      overflow: hidden;
-      display: flex; flex-direction: column;
-      animation: slideUp 0.25s ease;
-    }
-    @keyframes slideUp { from { transform:translateY(24px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+/* Vibe donut + sparkline row */
+.vibe-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  animation: fadeUp 0.6s 0.35s ease both;
+}
+.donut-card { padding: 22px; display: flex; flex-direction: column; align-items: center; }
+.donut-wrap { width: 140px; height: 140px; position: relative; margin: 12px 0; }
+.donut-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.donut-num  { font-family: var(--font-serif); font-size: 30px; font-weight: 700; line-height: 1; }
+.donut-unit { font-size: 10px; color: var(--text2); font-family: var(--font-mono); margin-top: 2px; }
+.donut-legend { display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 4px; }
+.dl-row { display: flex; align-items: center; justify-content: space-between; }
+.dl-left { display: flex; align-items: center; gap: 7px; font-size: 11px; }
+.dl-swatch { width: 9px; height: 9px; border-radius: 50%; }
+.dl-pct { font-family: var(--font-mono); font-size: 11px; color: var(--text2); }
 
-    .modal-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 18px 24px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    .modal-title { font-size: 16px; font-weight: 700; display:flex; align-items:center; gap:10px; }
-    .modal-close {
-      width: 32px; height: 32px; border-radius: 8px;
-      background: var(--surface2); border: 1px solid var(--border);
-      color: var(--muted); font-size: 18px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s; line-height: 1;
-    }
-    .modal-close:hover { color: var(--text); border-color: var(--accent); }
+.sparkline-card { padding: 22px; }
+.spark-wrap { height: 110px; margin-top: 8px; }
 
-    .modal-tabs {
-      display: flex; gap: 6px;
-      padding: 14px 24px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0; flex-wrap: wrap;
-    }
-    .tab-btn {
-      padding: 6px 16px; border-radius: 8px;
-      background: transparent; border: 1px solid var(--border);
-      color: var(--muted); font-family: var(--font-display);
-      font-size: 12px; font-weight: 600; cursor: pointer;
-      transition: all 0.2s;
-    }
-    .tab-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .tab-btn.active { background: rgba(108,143,255,0.12); border-color: var(--accent); color: var(--text); }
+/* ===================== FOOTER ===================== */
+.dash-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  background: var(--surface); border: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 11px; color: var(--text3);
+  animation: fadeUp 0.6s 0.4s ease both;
+}
 
-    .modal-body {
-      flex: 1; overflow-y: auto; padding: 20px 24px 24px;
-      display: flex; flex-direction: column; gap: 16px;
-    }
+/* ===================== STREAM MODAL ===================== */
+.overlay {
+  display: none; position: fixed; inset: 0; z-index: 500;
+  background: var(--modal-bg);
+  backdrop-filter: blur(20px) saturate(1.5);
+  align-items: center; justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+.overlay.open { display: flex; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 
-    .stream-viewport {
-      width: 100%; aspect-ratio: 16/9;
-      background: #04070e;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      overflow: hidden; position: relative;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .stream-viewport video,
-    .stream-viewport iframe {
-      width: 100%; height: 100%; object-fit: contain;
-      border: none;
-    }
-    .stream-placeholder {
-      display: flex; flex-direction: column; align-items: center; gap: 12px;
-      color: var(--muted); font-family: var(--font-mono); font-size: 13px;
-      text-align: center; padding: 40px;
-    }
-    .stream-placeholder .big-icon { font-size: 48px; opacity: 0.3; }
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: min(1020px, 96vw);
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes modalIn { from { transform: scale(0.94) translateY(20px); opacity:0; } to { transform: scale(1) translateY(0); opacity:1; } }
 
-    .stream-controls {
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    }
-    .ctrl-btn {
-      padding: 8px 18px; border-radius: 10px;
-      background: var(--surface2); border: 1px solid var(--border);
-      color: var(--text); font-family: var(--font-display);
-      font-size: 13px; font-weight: 600; cursor: pointer;
-      transition: all 0.2s; display:flex; align-items:center; gap:6px;
-    }
-    .ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .ctrl-btn.primary { background: rgba(108,143,255,0.15); border-color: var(--accent); color: var(--accent); }
-    .ctrl-btn.danger { background: rgba(255,77,106,0.1); border-color: rgba(255,77,106,0.4); color: var(--red); }
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.modal-title-wrap {}
+.modal-title { font-family: var(--font-serif); font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.modal-sub { font-size: 12px; color: var(--text2); margin-top: 3px; font-family: var(--font-mono); }
+.modal-close {
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text2); font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+}
+.modal-close:hover { background: var(--redDim); color: var(--red); border-color: rgba(255,85,119,0.3); }
 
-    .stream-input-row {
-      display: flex; gap: 10px; align-items: center;
-    }
-    .stream-input {
-      flex: 1; padding: 10px 14px; border-radius: 10px;
-      background: var(--surface2); border: 1px solid var(--border);
-      color: var(--text); font-family: var(--font-mono); font-size: 13px;
-      outline: none; transition: border-color 0.2s;
-    }
-    .stream-input:focus { border-color: var(--accent); }
-    .stream-input::placeholder { color: var(--muted); }
+.modal-tabs {
+  display: flex; gap: 4px; padding: 14px 28px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.mtab {
+  padding: 7px 18px; border-radius: var(--radius-sm);
+  background: transparent; border: 1px solid transparent;
+  color: var(--text2); font-family: var(--font-sans);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all var(--transition);
+}
+.mtab:hover { background: var(--surface); color: var(--text); }
+.mtab.active { background: var(--goldDim); border-color: rgba(212,175,80,0.3); color: var(--gold); }
 
-    .stream-status-bar {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 14px; border-radius: 10px;
-      background: var(--surface2); border: 1px solid var(--border);
-      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
-    }
-    .stream-status-dot { width:8px; height:8px; border-radius:50%; background: var(--muted); }
-    .stream-status-dot.live { background: var(--green); animation: pulse 1.5s infinite; }
-    .stream-status-dot.error { background: var(--red); }
+.modal-body { flex:1; overflow-y: auto; padding: 24px 28px 28px; display: flex; flex-direction: column; gap: 16px; }
 
-    .info-box {
-      padding: 12px 16px; border-radius: 10px;
-      background: rgba(108,143,255,0.06);
-      border: 1px solid rgba(108,143,255,0.15);
-      font-family: var(--font-mono); font-size: 12px;
-      color: var(--muted); line-height: 1.7;
-    }
-    .info-box b { color: var(--accent); }
-  </style>
+.viewport {
+  width: 100%; aspect-ratio: 16/9;
+  background: #040408;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  overflow: hidden; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+[data-theme="light"] .viewport { background: #e8e4dc; }
+.viewport video, .viewport iframe { width:100%; height:100%; object-fit:contain; border:none; }
+
+.vp-placeholder {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  color: var(--text3); font-size: 13px; font-family: var(--font-mono);
+  text-align: center; padding: 48px;
+  user-select: none;
+}
+.vp-icon { font-size: 52px; opacity: 0.25; }
+
+.status-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 12px; color: var(--text2);
+}
+.sdot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); }
+.sdot.live { background: var(--green); animation: pulseDot 1.5s infinite; }
+.sdot.err  { background: var(--red); }
+
+.ctrl-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cbtn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 18px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--font-sans);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all var(--transition);
+}
+.cbtn:hover { border-color: var(--borderHov); color: var(--gold); }
+.cbtn.gold { background: var(--goldDim); border-color: rgba(212,175,80,0.3); color: var(--gold); }
+.cbtn.gold:hover { background: rgba(212,175,80,0.2); }
+.cbtn.danger { background: var(--redDim); border-color: rgba(255,85,119,0.3); color: var(--red); }
+
+.url-row { display: flex; gap: 10px; }
+.url-input {
+  flex: 1; padding: 10px 16px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--font-mono); font-size: 13px;
+  outline: none; transition: border-color var(--transition);
+}
+.url-input:focus { border-color: var(--gold); }
+.url-input::placeholder { color: var(--text3); }
+
+.info-panel {
+  padding: 14px 18px; border-radius: var(--radius-sm);
+  background: var(--blueDim); border: 1px solid rgba(110,181,255,0.15);
+  font-family: var(--font-mono); font-size: 11.5px;
+  color: var(--text2); line-height: 1.8;
+}
+.info-panel b { color: var(--blue); }
+
+/* ===================== ANIMATIONS ===================== */
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(16px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 1200px) {
+  .kpi-grid { grid-template-columns: repeat(3,1fr); }
+  .mid-row { grid-template-columns: 1fr 1fr; }
+  .mid-row .alerts-panel { grid-column: span 2; }
+  .bottom-grid { grid-template-columns: 1fr 1fr; }
+  .vibe-row { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  nav { padding: 0 16px; }
+  main { padding: 16px 12px 40px; gap: 16px; }
+  .kpi-grid { grid-template-columns: repeat(2,1fr); }
+  .mid-row { grid-template-columns: 1fr; }
+  .mid-row .alerts-panel { grid-column: span 1; }
+  .bottom-grid { grid-template-columns: 1fr; }
+  .vibe-row { grid-template-columns: 1fr; }
+  .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .time-display { text-align: left; }
+  .dash-footer { flex-direction: column; gap: 6px; align-items: flex-start; }
+}
+</style>
 </head>
 <body>
+<div class="noise"></div>
 
+<!-- NAV -->
 <nav>
-  <div class="logo">VibeSense <span>AI</span></div>
+  <div class="logo">
+    VibeSense
+    <div class="logo-badge">AI</div>
+  </div>
   <div class="nav-right">
-    <div class="live-pill"><div class="live-dot"></div>LIVE</div>
-    <button class="btn-stream" onclick="openStreamModal()">📹 Live Stream</button>
+    <div class="live-indicator"><div class="pulse-dot"></div>LIVE</div>
+    <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</button>
+    <button class="stream-btn" onclick="openModal()">📹 Live Stream</button>
   </div>
 </nav>
 
-<!-- ===== STREAM MODAL ===== -->
-<div class="modal-overlay" id="streamModal" onclick="onOverlayClick(event)">
+<!-- STREAM MODAL -->
+<div class="overlay" id="streamOverlay" onclick="overlayClick(event)">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">
-        <div class="live-dot" style="width:9px;height:9px;"></div>
-        Live Stream Viewer
+    <div class="modal-head">
+      <div class="modal-title-wrap">
+        <div class="modal-title"><div class="pulse-dot"></div>Live Stream Viewer</div>
+        <div class="modal-sub">Multi-source camera feed — Webcam · MP4 · IP Cam · WebRTC</div>
       </div>
-      <button class="modal-close" onclick="closeStreamModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
-
     <div class="modal-tabs">
-      <button class="tab-btn active" onclick="switchTab('webcam')">📷 Webcam</button>
-      <button class="tab-btn" onclick="switchTab('file')">🎬 store.mp4</button>
-      <button class="tab-btn" onclick="switchTab('rtsp')">📡 IP / RTSP</button>
-      <button class="tab-btn" onclick="switchTab('webrtc')">⚡ WebRTC URL</button>
+      <button class="mtab active" onclick="switchTab('webcam',this)">📷 Webcam</button>
+      <button class="mtab" onclick="switchTab('file',this)">🎬 store.mp4</button>
+      <button class="mtab" onclick="switchTab('rtsp',this)">📡 IP / RTSP</button>
+      <button class="mtab" onclick="switchTab('webrtc',this)">⚡ WebRTC</button>
     </div>
-
     <div class="modal-body">
-
-      <!-- STREAM VIEWPORT -->
-      <div class="stream-viewport" id="streamViewport">
-        <div class="stream-placeholder" id="streamPlaceholder">
-          <div class="big-icon">📹</div>
-          <div>Select a stream source above to begin</div>
-          <div style="font-size:11px;opacity:0.6;">Supports Webcam · MP4 · IP Camera · WebRTC</div>
+      <div class="viewport" id="viewport">
+        <div class="vp-placeholder" id="vpPlaceholder">
+          <div class="vp-icon">📹</div>
+          <div>Choose a source above to begin streaming</div>
+          <div style="font-size:10px;margin-top:4px;opacity:0.6">Webcam · MP4 · IP Camera · WebRTC</div>
         </div>
-        <video id="streamVideo" style="display:none;" autoplay muted playsinline></video>
-        <video id="fileVideo" style="display:none;" autoplay loop controls></video>
-        <iframe id="webrtcFrame" style="display:none;" allow="camera;microphone;autoplay" allowfullscreen></iframe>
+        <video id="camVideo"    style="display:none;" autoplay muted playsinline></video>
+        <video id="fileVideo"   style="display:none;" autoplay loop controls></video>
+        <iframe id="rtcFrame"   style="display:none;" allow="camera;microphone;autoplay" allowfullscreen></iframe>
+      </div>
+      <div class="status-bar">
+        <div class="sdot" id="sdot"></div>
+        <span id="stext">No stream active</span>
+        <span style="margin-left:auto;opacity:0.5;font-size:11px;" id="smeta"></span>
       </div>
 
-      <!-- STATUS BAR -->
-      <div class="stream-status-bar">
-        <div class="stream-status-dot" id="streamDot"></div>
-        <span id="streamStatusText">No stream active</span>
-        <span style="margin-left:auto;opacity:0.5;" id="streamMeta"></span>
-      </div>
-
-      <!-- TAB PANELS -->
-
-      <!-- WEBCAM PANEL -->
       <div id="panel-webcam">
-        <div class="stream-controls">
-          <button class="ctrl-btn primary" onclick="startWebcam()">▶ Start Webcam</button>
-          <button class="ctrl-btn danger" onclick="stopStream()">⏹ Stop</button>
-          <button class="ctrl-btn" onclick="toggleMirror()">↔ Mirror</button>
-          <button class="ctrl-btn" onclick="takeSnapshot()">📸 Snapshot</button>
+        <div class="ctrl-row">
+          <button class="cbtn gold" onclick="startWebcam()">▶ Start Camera</button>
+          <button class="cbtn danger" onclick="stopAll()">⏹ Stop</button>
+          <button class="cbtn" onclick="mirrorCam()">↔ Mirror</button>
+          <button class="cbtn" onclick="snap()">📸 Snapshot</button>
         </div>
-        <div class="info-box" style="margin-top:10px;">
-          <b>Webcam:</b> Uses your device's default camera. Browser will ask for permission.<br>
-          Works best for demo / development. Click <b>Start Webcam</b> to begin.
+        <div class="info-panel" style="margin-top:12px;">
+          <b>Webcam</b> — Uses your device camera. Browser will request permission on first use.<br>
+          Works great for demos. Snapshot saves a PNG to your Downloads.
         </div>
       </div>
 
-      <!-- FILE PANEL -->
       <div id="panel-file" style="display:none;">
-        <div class="stream-controls">
-          <label class="ctrl-btn primary" style="cursor:pointer;">
-            📂 Choose Video File
-            <input type="file" accept="video/*" style="display:none;" onchange="loadFileStream(event)">
+        <div class="ctrl-row">
+          <label class="cbtn gold" style="cursor:pointer;">
+            📂 Upload Video <input type="file" accept="video/*" style="display:none;" onchange="loadLocal(event)">
           </label>
-          <button class="ctrl-btn primary" onclick="loadServerVideo()">▶ Load store.mp4</button>
-          <button class="ctrl-btn danger" onclick="stopFileStream()">⏹ Stop</button>
+          <button class="cbtn gold" onclick="loadServer()">▶ Load store.mp4</button>
+          <button class="cbtn danger" onclick="stopAll()">⏹ Stop</button>
         </div>
-        <div class="info-box" style="margin-top:10px;">
-          <b>store.mp4:</b> Click <b>Load store.mp4</b> to stream the deployed video from your server.<br>
-          Or upload any local video file via <b>Choose Video File</b>.
+        <div class="info-panel" style="margin-top:12px;">
+          <b>store.mp4</b> — Streams the deployed video looped. Ensure <code>StaticFiles</code> is mounted in <b>main.py</b>.<br>
+          Or upload any local video file directly.
         </div>
       </div>
 
-      <!-- RTSP PANEL -->
       <div id="panel-rtsp" style="display:none;">
-        <div class="stream-input-row">
-          <input class="stream-input" id="rtspUrl" placeholder="e.g. http://192.168.1.100:8080/video  or  ws://..." />
-          <button class="ctrl-btn primary" onclick="loadRtspStream()">▶ Connect</button>
-          <button class="ctrl-btn danger" onclick="stopStream()">⏹ Stop</button>
+        <div class="url-row">
+          <input class="url-input" id="rtspInput" placeholder="http://192.168.1.x:8080/video  or  ws://..."/>
+          <button class="cbtn gold" onclick="loadMJPEG()">▶ Connect</button>
+          <button class="cbtn danger" onclick="stopAll()">⏹ Stop</button>
         </div>
-        <div class="info-box" style="margin-top:10px;">
-          <b>IP Camera / RTSP:</b> Enter an HTTP MJPEG stream URL (e.g. from IP Webcam Android app) or a WebSocket stream URL.<br>
-          <b>Note:</b> Raw RTSP is not supported in browsers directly — use an MJPEG proxy or convert via <b>go2rtc / mediamtx</b> first.<br>
-          <b>Quick test:</b> Install <b>IP Webcam</b> on Android → start server → paste the /video URL here.
+        <div class="info-panel" style="margin-top:12px;">
+          <b>IP Camera / RTSP</b> — Paste an MJPEG HTTP URL (Android <b>IP Webcam</b> app → /video) or WebSocket URL.<br>
+          Raw RTSP needs browser proxy: use <b>go2rtc</b> or <b>mediamtx</b> to convert RTSP → MJPEG/WebRTC.
         </div>
       </div>
 
-      <!-- WEBRTC PANEL -->
       <div id="panel-webrtc" style="display:none;">
-        <div class="stream-input-row">
-          <input class="stream-input" id="webrtcUrl" placeholder="e.g. https://your-webrtc-server/stream" />
-          <button class="ctrl-btn primary" onclick="loadWebRTC()">▶ Open</button>
-          <button class="ctrl-btn danger" onclick="stopWebRTC()">⏹ Stop</button>
+        <div class="url-row">
+          <input class="url-input" id="rtcInput" placeholder="https://your-webrtc-viewer-url"/>
+          <button class="cbtn gold" onclick="loadRTC()">▶ Embed</button>
+          <button class="cbtn danger" onclick="stopAll()">⏹ Stop</button>
         </div>
-        <div class="info-box" style="margin-top:10px;">
-          <b>WebRTC:</b> Paste any WebRTC viewer URL (e.g. from go2rtc, Janus, MediaSoup, or OBS stream key page).<br>
-          The stream will be embedded in an iframe. Make sure your WebRTC server allows embedding.<br>
-          <b>Low-latency tip:</b> Use <b>go2rtc</b> to relay your RTSP into WebRTC for sub-second latency.
+        <div class="info-panel" style="margin-top:12px;">
+          <b>WebRTC</b> — Embed any WebRTC viewer URL (go2rtc, Janus, OBS, MediaSoup).<br>
+          Ensure the server allows iframe embedding. Sub-second latency with proper setup.
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
+<!-- MAIN -->
 <main>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">Store <span>Intelligence</span> Dashboard</div>
+      <div class="page-sub">Real-time occupancy · mood analytics · ambient control · anomaly detection</div>
+    </div>
+    <div class="time-display">
+      <div class="time-clock" id="clockDisplay">00:00:00</div>
+      <div class="time-date" id="dateDisplay">—</div>
+    </div>
+  </div>
 
   <!-- ANOMALY BANNER -->
   <div class="anomaly-banner" id="anomalyBanner">
-    <span class="anomaly-icon">⚠️</span>
-    <span>CRITICAL ANOMALY DETECTED — Store capacity threshold exceeded. Immediate floor staff intervention required.</span>
+    <div class="anomaly-icon">⚠️</div>
+    <div>
+      <div class="anomaly-text">Critical Anomaly Detected</div>
+      <div class="anomaly-sub">Store capacity threshold exceeded — floor staff intervention required</div>
+    </div>
+    <button class="anomaly-btn" onclick="document.getElementById('anomalyBanner').classList.remove('visible')">Dismiss</button>
   </div>
 
-  <!-- STAT CARDS -->
-  <div>
-    <div class="section-label">Real-Time Metrics</div>
-    <div class="cards-row">
-      <div class="card" style="--card-accent:#6c8fff; --card-color:#6c8fff;">
-        <div class="card-icon">👥</div>
-        <div class="card-label">Occupancy</div>
-        <div class="card-value" id="occupancyVal">—</div>
-        <div class="card-sub" id="occupancySub">Fetching...</div>
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="card kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-label">Occupancy</div>
+        <div class="kpi-icon">👥</div>
       </div>
-      <div class="card" style="--card-accent:#a855f7; --card-color:#a855f7;">
-        <div class="card-icon">✨</div>
-        <div class="card-label">Store Mood</div>
-        <div class="card-value" style="font-size:20px; padding-top:8px;" id="moodVal">Loading...</div>
-        <div class="card-sub" id="moodSub">Analyzing atmosphere</div>
+      <div class="kpi-value" id="kpiOcc" style="color:var(--blue)">—</div>
+      <div class="kpi-footer">
+        <div class="kpi-badge info" id="kpiOccBadge">—</div>
+        <div class="kpi-delta" id="kpiOccDelta">people in-store</div>
       </div>
-      <div class="card" style="--card-accent:#22d3a0; --card-color:#22d3a0;">
-        <div class="card-icon">🎵</div>
-        <div class="card-label">Audio</div>
-        <div class="card-value" style="font-size:15px; padding-top:8px; line-height:1.3;" id="audioVal">Syncing...</div>
-        <div class="card-sub">Ambient system</div>
+    </div>
+    <div class="card kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-label">Store Vibe</div>
+        <div class="kpi-icon">✨</div>
       </div>
-      <div class="card" style="--card-accent:#f59e0b; --card-color:#f59e0b;">
-        <div class="card-icon">🔔</div>
-        <div class="card-label">Active Alerts</div>
-        <div class="card-value" id="alertCount">0</div>
-        <div class="card-sub" id="alertStatus">No anomalies</div>
+      <div class="kpi-value md" id="kpiVibe" style="color:var(--purple)">Loading...</div>
+      <div class="kpi-footer">
+        <div class="kpi-badge neu" id="kpiVibeBadge">atmosphere</div>
+      </div>
+    </div>
+    <div class="card kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-label">Ambient Audio</div>
+        <div class="kpi-icon">🎵</div>
+      </div>
+      <div class="kpi-value sm" id="kpiAudio" style="color:var(--green)">Syncing...</div>
+      <div class="kpi-footer">
+        <div class="kpi-badge up">▶ PLAYING</div>
+      </div>
+    </div>
+    <div class="card kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-label">Active Alerts</div>
+        <div class="kpi-icon">🔔</div>
+      </div>
+      <div class="kpi-value" id="kpiAlerts" style="color:var(--amber)">0</div>
+      <div class="kpi-footer">
+        <div class="kpi-badge neu" id="kpiAlertBadge">monitoring</div>
+      </div>
+    </div>
+    <div class="card kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-label">Uptime</div>
+        <div class="kpi-icon">⚡</div>
+      </div>
+      <div class="kpi-value" id="kpiUptime" style="color:var(--green);font-size:28px;">0m</div>
+      <div class="kpi-footer">
+        <div class="kpi-badge up">HEALTHY</div>
+        <div class="kpi-delta">since start</div>
       </div>
     </div>
   </div>
 
-  <!-- OCCUPANCY TREND + ALERTS -->
+  <!-- MID ROW: Occupancy chart + Vibe chart + Alerts -->
   <div class="mid-row">
-    <div class="chart-card">
-      <div class="chart-header">
-        <div class="chart-title">Occupancy Trend</div>
-        <div class="chart-badge">Last 20 readings</div>
+    <div class="card chart-card">
+      <div class="chart-head">
+        <div>
+          <div class="chart-title">Occupancy Trend</div>
+          <div class="chart-subtitle">Last 30 readings · 3s interval</div>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Count</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red);opacity:0.5;"></div>Threshold</div>
+        </div>
       </div>
-      <div class="chart-wrap">
-        <canvas id="occupancyChart"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="occChart"></canvas></div>
     </div>
-    <div class="alerts-panel">
-      <div class="alerts-header">
+
+    <div class="card chart-card">
+      <div class="chart-head">
+        <div>
+          <div class="chart-title">Vibe History</div>
+          <div class="chart-subtitle">Atmosphere over time</div>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Cozy</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Moderate</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Energetic</div>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="vibeChart"></canvas></div>
+    </div>
+
+    <div class="card alerts-panel">
+      <div class="alerts-head">
         <div class="alerts-title">Live Alerts</div>
-        <div class="alerts-count" id="alertCountLabel">0 alerts</div>
+        <div class="alerts-badge" id="alertBadge">0</div>
       </div>
-      <div class="alerts-list" id="alertsList">
-        <div style="color:var(--muted);font-size:13px;font-family:var(--font-mono);padding:20px 0;text-align:center;">Monitoring for anomalies...</div>
+      <div class="alerts-scroll" id="alertScroll">
+        <div class="no-alerts">🟢 All systems normal</div>
       </div>
     </div>
   </div>
 
-  <!-- MOOD HISTORY CHART -->
-  <div class="mood-row">
-    <div class="mood-header">
-      <div>
-        <div class="section-label" style="margin-bottom:4px;">Vibe History</div>
-        <div style="font-size:15px;font-weight:700;">Store Atmosphere Over Time</div>
+  <!-- BOTTOM GRID: Zone · Music · Health · Donut row -->
+  <div class="vibe-row">
+    <div class="card donut-card">
+      <div class="section-label">Distribution</div>
+      <div class="section-title" style="margin-bottom:0;">Vibe Breakdown</div>
+      <div class="donut-wrap">
+        <canvas id="donutChart"></canvas>
+        <div class="donut-center">
+          <div class="donut-num" id="donutNum">—</div>
+          <div class="donut-unit">PEOPLE</div>
+        </div>
       </div>
-      <div class="mood-chips">
-        <div class="mood-chip active" id="chip-cozy">Cozy & Premium</div>
-        <div class="mood-chip" id="chip-moderate">Moderate & Buzzing</div>
-        <div class="mood-chip" id="chip-energetic">Energetic & Crowded</div>
+      <div class="donut-legend" id="donutLegend">
+        <div class="dl-row"><div class="dl-left"><div class="dl-swatch" style="background:var(--blue)"></div>Cozy & Premium</div><div class="dl-pct" id="dl1">—%</div></div>
+        <div class="dl-row"><div class="dl-left"><div class="dl-swatch" style="background:var(--amber)"></div>Moderate</div><div class="dl-pct" id="dl2">—%</div></div>
+        <div class="dl-row"><div class="dl-left"><div class="dl-swatch" style="background:var(--red)"></div>Energetic</div><div class="dl-pct" id="dl3">—%</div></div>
       </div>
     </div>
-    <div class="mood-wrap">
-      <canvas id="vibeChart"></canvas>
+
+    <div class="card sparkline-card">
+      <div class="section-label">Analytics</div>
+      <div class="section-title">Peak Hours Simulation</div>
+      <div class="spark-wrap"><canvas id="sparkChart"></canvas></div>
     </div>
   </div>
 
-  <!-- ZONE HEATMAP + MUSIC + SYSTEM STATUS -->
-  <div class="bottom-row">
-
-    <div class="zone-card">
-      <div class="section-label" style="margin-bottom:4px;">Zone Activity</div>
-      <div style="font-size:15px;font-weight:700;">Floor Heatmap</div>
-      <div class="zone-list" id="zoneList">
-        <!-- populated by JS -->
-      </div>
+  <div class="bottom-grid">
+    <div class="card zone-card">
+      <div class="section-label">Spatial</div>
+      <div class="section-title">Zone Heatmap</div>
+      <div class="zone-list" id="zoneList"></div>
     </div>
 
-    <div class="music-card">
-      <div class="section-label" style="margin-bottom:4px;">Ambient System</div>
-      <div style="font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:space-between;">
-        Now Playing
-        <button id="soundToggleBtn" onclick="toggleSound()" style="
-          padding:5px 14px; border-radius:8px; border:1px solid var(--border);
-          background:var(--surface2); color:var(--muted); font-family:var(--font-mono);
-          font-size:11px; cursor:pointer; transition:all 0.2s;
-        ">▶ Enable Sound</button>
-      </div>
-      <div class="music-visual" id="musicVisual">
-        <!-- bars will be generated -->
-      </div>
-      <div class="music-title" id="musicTitle">Loading...</div>
-      <div class="music-sub" id="musicSub">Matching current store vibe</div>
-      <div style="display:flex;align-items:center;gap:10px;margin-top:12px;">
-        <div class="music-tag" id="musicTag">—</div>
-        <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
-          <span style="font-size:11px;color:var(--muted);font-family:var(--font-mono);">Vol</span>
-          <input type="range" id="volumeSlider" min="0" max="100" value="40"
-            oninput="setVolume(this.value)"
-            style="width:70px;accent-color:var(--accent2);cursor:pointer;" />
+    <div class="card music-card">
+      <div class="section-label">Ambient System</div>
+      <div class="section-title" style="margin-bottom:0;">Now Playing</div>
+      <div class="music-bars" id="musicBars"></div>
+      <div class="music-name" id="musicName">Loading...</div>
+      <div class="music-desc" id="musicDesc">Matching store atmosphere</div>
+      <div class="music-controls">
+        <button class="sound-toggle" id="soundBtn" onclick="toggleSound()">▶ Enable Sound</button>
+        <div class="vol-wrap">
+          <span class="vol-label">Vol</span>
+          <input type="range" min="0" max="100" value="40" oninput="setVol(this.value)"/>
         </div>
       </div>
     </div>
 
-    <div class="status-card">
-      <div class="section-label" style="margin-bottom:4px;">Infrastructure</div>
-      <div style="font-size:15px;font-weight:700;">System Health</div>
-      <div class="status-list">
-        <div class="status-row">
-          <div class="status-name">YOLO Pipeline</div>
-          <div class="status-badge ok" id="statusYolo">HEALTHY</div>
-        </div>
-        <div class="status-row">
-          <div class="status-name">FastAPI Backend</div>
-          <div class="status-badge ok" id="statusApi">ONLINE</div>
-        </div>
-        <div class="status-row">
-          <div class="status-name">Vibe Engine</div>
-          <div class="status-badge ok" id="statusVibe">RUNNING</div>
-        </div>
-        <div class="status-row">
-          <div class="status-name">Anomaly Detector</div>
-          <div class="status-badge ok" id="statusAnomaly">CLEAR</div>
-        </div>
-        <div class="status-row">
-          <div class="status-name">Last Inference</div>
-          <div class="status-badge ok" id="statusTime">—</div>
-        </div>
+    <div class="card health-card">
+      <div class="section-label">Infrastructure</div>
+      <div class="section-title">System Health</div>
+      <div class="health-list">
+        <div class="health-row"><div class="health-name">YOLO Pipeline</div><div class="health-badge hb-ok">HEALTHY</div></div>
+        <div class="health-row"><div class="health-name">FastAPI Backend</div><div class="health-badge hb-ok" id="hApi">ONLINE</div></div>
+        <div class="health-row"><div class="health-name">Vibe Engine</div><div class="health-badge hb-ok">RUNNING</div></div>
+        <div class="health-row"><div class="health-name">Anomaly Detector</div><div class="health-badge hb-ok" id="hAnomaly">CLEAR</div></div>
+        <div class="health-row"><div class="health-name">Last Inference</div><div class="health-badge hb-ok" id="hTime">—</div></div>
       </div>
+    </div>
+
+    <div class="card zone-card">
+      <div class="section-label">Insights</div>
+      <div class="section-title">Customer Signals</div>
+      <div class="zone-list" id="signalList"></div>
     </div>
   </div>
 
   <!-- FOOTER -->
-  <div class="footer-bar">
-    <span>🔄 Auto-refresh every 3s</span>
-    <span>Last updated: <span id="lastUpdated">—</span></span>
+  <div class="dash-footer">
+    <span>🔄 Auto-refresh · 3s interval</span>
+    <span id="footerTime">Last updated: —</span>
     <span>VibeSense AI · Purplle Tech Challenge 2026</span>
   </div>
 
 </main>
 
 <script>
-// ==================== SOUND ENGINE (Web Audio API) ====================
-
-let audioCtx = null;
-let masterGain = null;
-let ambientNodes = [];
-let soundEnabled = false;
-let currentVibe = '';
-let alertCooldown = false;
-
-function initAudio() {
-  if (audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.4;
-  masterGain.connect(audioCtx.destination);
+// ===================== THEME =====================
+let isDark = true;
+function toggleTheme() {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
+  updateChartColors();
 }
 
-function setVolume(val) {
-  if (masterGain) masterGain.gain.setTargetAtTime(val / 100, audioCtx.currentTime, 0.1);
+// ===================== CLOCK =====================
+let startTime = Date.now();
+function tickClock() {
+  const now = new Date();
+  document.getElementById('clockDisplay').textContent =
+    now.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  document.getElementById('dateDisplay').textContent =
+    now.toLocaleDateString('en-IN', {weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase();
+  const upSec = Math.floor((Date.now() - startTime) / 1000);
+  const upMin = Math.floor(upSec / 60);
+  document.getElementById('kpiUptime').textContent = upMin > 0 ? `${upMin}m` : `${upSec}s`;
 }
+setInterval(tickClock, 1000); tickClock();
 
-function toggleSound() {
-  if (!soundEnabled) {
-    initAudio();
-    soundEnabled = true;
-    document.getElementById('soundToggleBtn').textContent = '🔊 Sound ON';
-    document.getElementById('soundToggleBtn').style.color = 'var(--green)';
-    document.getElementById('soundToggleBtn').style.borderColor = 'rgba(34,211,160,0.4)';
-    playAmbient(currentVibe || 'Cozy & Premium');
-  } else {
-    stopAmbient();
-    soundEnabled = false;
-    document.getElementById('soundToggleBtn').textContent = '▶ Enable Sound';
-    document.getElementById('soundToggleBtn').style.color = 'var(--muted)';
-    document.getElementById('soundToggleBtn').style.borderColor = 'var(--border)';
-  }
-}
+// ===================== CHARTS =====================
+function gridColor() { return getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim() || 'rgba(255,255,255,0.05)'; }
+function textColor()  { return getComputedStyle(document.documentElement).getPropertyValue('--text2').trim() || '#888'; }
 
-function stopAmbient() {
-  ambientNodes.forEach(n => { try { n.stop(); } catch(e){} });
-  ambientNodes = [];
-}
-
-// Generate ambient music using oscillators + noise
-function playAmbient(vibe) {
-  if (!audioCtx || !soundEnabled) return;
-  stopAmbient();
-
-  if (vibe === 'Cozy & Premium') {
-    // Warm acoustic feel: soft sine chords + gentle noise
-    playChord([261.63, 329.63, 392.00], 'sine', 0.06, true);   // C major — warm
-    playChord([220.00, 277.18, 329.63], 'sine', 0.04, true, 8); // Am — resolving
-    playBrownNoise(0.015);
-  } else if (vibe === 'Moderate & Buzzing') {
-    // Lo-fi: slightly detuned, triangle waves + pink noise
-    playChord([220.00, 261.63, 329.63], 'triangle', 0.07, true);
-    playChord([174.61, 220.00, 261.63], 'triangle', 0.05, true, 6);
-    playPinkNoise(0.018);
-    playLowBeat(1.8, 0.08);
-  } else if (vibe === 'Energetic & Crowded') {
-    // Upbeat synth: sawtooth + square harmonics + white noise
-    playChord([329.63, 415.30, 493.88], 'sawtooth', 0.05, true);
-    playChord([261.63, 349.23, 440.00], 'square', 0.03, true, 4);
-    playWhiteNoise(0.012);
-    playLowBeat(2.4, 0.12);
-    playHighBeat(4.8, 0.04);
-  }
-}
-
-function playChord(freqs, type, gain, loop, switchAfter) {
-  if (!audioCtx) return;
-  freqs.forEach((freq, i) => {
-    const osc = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    const filter = audioCtx.createBiquadFilter();
-
-    osc.type = type;
-    osc.frequency.value = freq;
-    // Slight detune for warmth
-    osc.detune.value = (Math.random() - 0.5) * 8;
-
-    filter.type = 'lowpass';
-    filter.frequency.value = 800 + Math.random() * 400;
-
-    g.gain.value = 0;
-    g.gain.setTargetAtTime(gain, audioCtx.currentTime + i * 0.3, 0.5);
-
-    osc.connect(filter);
-    filter.connect(g);
-    g.connect(masterGain);
-    osc.start();
-
-    // Slow fade in/out tremolo
-    scheduleTremolo(g, gain, 3 + Math.random() * 4);
-
-    ambientNodes.push(osc);
-    if (switchAfter) {
-      setTimeout(() => {
-        g.gain.setTargetAtTime(0, audioCtx.currentTime, 1);
-        setTimeout(() => { try { osc.stop(); } catch(e){} }, 3000);
-      }, switchAfter * 1000);
-    }
-  });
-}
-
-function scheduleTremolo(gainNode, baseGain, period) {
-  const lfo = audioCtx.createOscillator();
-  const lfoGain = audioCtx.createGain();
-  lfo.frequency.value = 1 / period;
-  lfoGain.gain.value = baseGain * 0.3;
-  lfo.connect(lfoGain);
-  lfoGain.connect(gainNode.gain);
-  lfo.start();
-  ambientNodes.push(lfo);
-}
-
-function playBrownNoise(vol) {
-  const bufSize = audioCtx.sampleRate * 4;
-  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-  const data = buf.getChannelData(0);
-  let last = 0;
-  for (let i = 0; i < bufSize; i++) {
-    const w = Math.random() * 2 - 1;
-    data[i] = (last + 0.02 * w) / 1.02;
-    last = data[i];
-    data[i] *= 3.5;
-  }
-  playNoiseBuffer(buf, vol);
-}
-
-function playPinkNoise(vol) {
-  const bufSize = audioCtx.sampleRate * 4;
-  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-  const data = buf.getChannelData(0);
-  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-  for (let i = 0; i < bufSize; i++) {
-    const w = Math.random() * 2 - 1;
-    b0 = 0.99886*b0 + w*0.0555179; b1 = 0.99332*b1 + w*0.0750759;
-    b2 = 0.96900*b2 + w*0.1538520; b3 = 0.86650*b3 + w*0.3104856;
-    b4 = 0.55000*b4 + w*0.5329522; b5 = -0.7616*b5 - w*0.0168980;
-    data[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362) * 0.11;
-    b6 = w * 0.115926;
-  }
-  playNoiseBuffer(buf, vol);
-}
-
-function playWhiteNoise(vol) {
-  const bufSize = audioCtx.sampleRate * 2;
-  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-  const data = buf.getChannelData(0);
-  for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-  playNoiseBuffer(buf, vol);
-}
-
-function playNoiseBuffer(buf, vol) {
-  const src = audioCtx.createBufferSource();
-  const g = audioCtx.createGain();
-  const filter = audioCtx.createBiquadFilter();
-  src.buffer = buf;
-  src.loop = true;
-  filter.type = 'bandpass';
-  filter.frequency.value = 400;
-  filter.Q.value = 0.5;
-  g.gain.value = vol;
-  src.connect(filter);
-  filter.connect(g);
-  g.connect(masterGain);
-  src.start();
-  ambientNodes.push(src);
-}
-
-function playLowBeat(bpm, vol) {
-  const interval = 60 / bpm;
-  let t = audioCtx.currentTime + 0.1;
-  const schedBeat = () => {
-    if (!soundEnabled) return;
-    const osc = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    osc.frequency.value = 80;
-    osc.type = 'sine';
-    g.gain.setValueAtTime(vol, t);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-    osc.connect(g); g.connect(masterGain);
-    osc.start(t); osc.stop(t + 0.25);
-    t += interval;
-    setTimeout(schedBeat, (interval - 0.1) * 1000);
-  };
-  schedBeat();
-}
-
-function playHighBeat(bpm, vol) {
-  const interval = 60 / bpm;
-  let t = audioCtx.currentTime + 0.2;
-  const schedBeat = () => {
-    if (!soundEnabled) return;
-    const osc = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    osc.frequency.value = 600 + Math.random() * 200;
-    osc.type = 'square';
-    g.gain.setValueAtTime(vol, t);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
-    osc.connect(g); g.connect(masterGain);
-    osc.start(t); osc.stop(t + 0.06);
-    t += interval;
-    setTimeout(schedBeat, (interval - 0.05) * 1000);
-  };
-  schedBeat();
-}
-
-// ---- ALERT SOUNDS ----
-function playAlertSound(type) {
-  if (!audioCtx || !soundEnabled || alertCooldown) return;
-  alertCooldown = true;
-  setTimeout(() => alertCooldown = false, 4000);
-
-  if (type === 'critical') {
-    // Urgent 3-tone alarm
-    [0, 0.25, 0.5].forEach((delay, i) => {
-      const osc = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      osc.frequency.value = i % 2 === 0 ? 880 : 660;
-      osc.type = 'square';
-      g.gain.setValueAtTime(0, audioCtx.currentTime + delay);
-      g.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + delay + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.22);
-      osc.connect(g); g.connect(masterGain);
-      osc.start(audioCtx.currentTime + delay);
-      osc.stop(audioCtx.currentTime + delay + 0.25);
-    });
-  } else {
-    // Soft 2-tone notification
-    [440, 550].forEach((freq, i) => {
-      const osc = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      osc.frequency.value = freq;
-      osc.type = 'sine';
-      g.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.18);
-      g.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + i * 0.18 + 0.03);
-      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.18 + 0.3);
-      osc.connect(g); g.connect(masterGain);
-      osc.start(audioCtx.currentTime + i * 0.18);
-      osc.stop(audioCtx.currentTime + i * 0.18 + 0.35);
-    });
-  }
-}
-
-// ==================== CHART SETUP ====================
-
-const chartDefaults = {
+const baseOpts = (min, max) => ({
   responsive: true, maintainAspectRatio: false,
   plugins: { legend: { display: false }, tooltip: {
-    backgroundColor: '#111b2e', borderColor: 'rgba(99,136,255,0.3)',
-    borderWidth: 1, titleColor: '#e2e8f8', bodyColor: '#5a6a8a',
-    titleFont: { family: 'DM Mono' }, bodyFont: { family: 'DM Mono', size: 11 }
+    backgroundColor: '#0f0f1a', borderColor: 'rgba(212,175,80,0.3)', borderWidth: 1,
+    titleColor: '#f0ede8', bodyColor: '#8a8898',
+    titleFont: { family: 'JetBrains Mono', size: 11 },
+    bodyFont:  { family: 'JetBrains Mono', size: 10 },
+    padding: 10, cornerRadius: 8,
   }},
   scales: {
     x: { display: false },
     y: {
-      grid: { color: 'rgba(99,136,255,0.07)', drawBorder: false },
-      ticks: { color: '#5a6a8a', font: { family: 'DM Mono', size: 10 }, maxTicksLimit: 5 },
+      min, max,
+      grid: { color: gridColor(), drawBorder: false },
+      ticks: { color: textColor(), font: { family: 'JetBrains Mono', size: 10 }, maxTicksLimit: 4 },
       border: { display: false }
     }
-  }
-};
+  },
+  animation: { duration: 300 }
+});
 
-// Occupancy Line Chart
-const occCtx = document.getElementById('occupancyChart').getContext('2d');
-const occData = Array(20).fill(0);
-const occGrad = occCtx.createLinearGradient(0, 0, 0, 200);
-occGrad.addColorStop(0, 'rgba(108,143,255,0.3)');
-occGrad.addColorStop(1, 'rgba(108,143,255,0)');
-
+// Occupancy chart
+const occCtx = document.getElementById('occChart').getContext('2d');
+const occGrad = occCtx.createLinearGradient(0,0,0,180);
+occGrad.addColorStop(0,'rgba(110,181,255,0.25)');
+occGrad.addColorStop(1,'rgba(110,181,255,0)');
+const occData = Array(30).fill(0);
+const threshData = Array(30).fill(10);
 const occChart = new Chart(occCtx, {
   type: 'line',
   data: {
-    labels: Array(20).fill(''),
-    datasets: [{
-      data: occData,
-      borderColor: '#6c8fff',
-      borderWidth: 2.5,
-      pointRadius: 0,
-      pointHoverRadius: 5,
-      pointHoverBackgroundColor: '#6c8fff',
-      fill: true,
-      backgroundColor: occGrad,
-      tension: 0.4
-    }]
+    labels: Array(30).fill(''),
+    datasets: [
+      { data: occData, borderColor:'#6eb5ff', borderWidth:2.5, fill:true, backgroundColor:occGrad, tension:0.4, pointRadius:0, pointHoverRadius:4 },
+      { data: threshData, borderColor:'rgba(255,85,119,0.4)', borderWidth:1.5, borderDash:[5,4], fill:false, tension:0, pointRadius:0 }
+    ]
   },
-  options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 15 } } }
+  options: baseOpts(0, 16)
 });
 
-// Vibe History Bar Chart
+// Vibe chart
 const vibeCtx = document.getElementById('vibeChart').getContext('2d');
-const vibeData = Array(20).fill(1);
+const vibeData = Array(30).fill(1);
 const vibeChart = new Chart(vibeCtx, {
   type: 'bar',
   data: {
-    labels: Array(20).fill(''),
+    labels: Array(30).fill(''),
+    datasets: [{ data: vibeData, backgroundColor: vibeData.map(vc), borderRadius:4, borderSkipped:false }]
+  },
+  options: { ...baseOpts(0,3.5), scales: { x:{display:false}, y:{display:false,min:0,max:3.5,grid:{display:false},border:{display:false}} } }
+});
+function vc(v) { return v>=3?'rgba(255,85,119,0.8)': v>=2?'rgba(245,166,35,0.8)':'rgba(110,181,255,0.75)'; }
+
+// Donut chart
+const donutCtx = document.getElementById('donutChart').getContext('2d');
+const donutChart = new Chart(donutCtx, {
+  type: 'doughnut',
+  data: {
     datasets: [{
-      data: vibeData,
-      backgroundColor: vibeData.map(v => vibeColor(v)),
-      borderRadius: 4,
-      borderSkipped: false
+      data: [60,30,10],
+      backgroundColor: ['rgba(110,181,255,0.8)','rgba(245,166,35,0.8)','rgba(255,85,119,0.8)'],
+      borderWidth: 2, borderColor: 'transparent',
+      hoverOffset: 4
     }]
   },
   options: {
-    ...chartDefaults,
-    scales: {
-      x: { display: false },
-      y: {
-        display: false, min: 0, max: 3,
-        grid: { display: false }, border: { display: false }
-      }
+    responsive: true, maintainAspectRatio: true,
+    cutout: '70%',
+    plugins: { legend:{display:false}, tooltip:{
+      backgroundColor:'#0f0f1a', borderColor:'rgba(212,175,80,0.3)', borderWidth:1,
+      titleFont:{family:'JetBrains Mono',size:10}, bodyFont:{family:'JetBrains Mono',size:10},
+      callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}%` }
+    }}
+  }
+});
+
+// Spark / peak hours
+const sparkCtx = document.getElementById('sparkChart').getContext('2d');
+const sparkGrad = sparkCtx.createLinearGradient(0,0,0,110);
+sparkGrad.addColorStop(0,'rgba(212,175,80,0.3)');
+sparkGrad.addColorStop(1,'rgba(212,175,80,0)');
+const peakData = [2,3,4,5,6,8,9,11,10,8,7,6,8,9,13,14,12,10,9,8,7,6,5,4];
+const sparkChart = new Chart(sparkCtx, {
+  type: 'line',
+  data: {
+    labels: Array.from({length:24},(_,i)=>`${i}:00`),
+    datasets: [{
+      data: peakData, borderColor:'#d4af50', borderWidth:2,
+      fill:true, backgroundColor:sparkGrad,
+      tension:0.5, pointRadius:0, pointHoverRadius:5,
+      pointHoverBackgroundColor:'#d4af50'
+    }]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{
+      backgroundColor:'#0f0f1a',borderColor:'rgba(212,175,80,0.3)',borderWidth:1,
+      titleFont:{family:'JetBrains Mono',size:10},bodyFont:{family:'JetBrains Mono',size:10},
+      callbacks:{title:i=>`Hour: ${i[0].label}`,label:i=>` Occupancy: ${i.parsed.y}`}
+    }},
+    scales:{
+      x:{grid:{display:false},ticks:{color:textColor(),font:{family:'JetBrains Mono',size:9},maxTicksLimit:8},border:{display:false}},
+      y:{grid:{color:gridColor(),drawBorder:false},ticks:{color:textColor(),font:{family:'JetBrains Mono',size:9},maxTicksLimit:4},border:{display:false}}
     }
   }
 });
 
-function vibeColor(v) {
-  if (v === 3) return 'rgba(255,77,106,0.75)';
-  if (v === 2) return 'rgba(245,158,11,0.75)';
-  return 'rgba(108,143,255,0.65)';
+function updateChartColors() {
+  [occChart,vibeChart,sparkChart].forEach(c => {
+    if (c.options.scales?.y?.grid) c.options.scales.y.grid.color = gridColor();
+    if (c.options.scales?.y?.ticks) c.options.scales.y.ticks.color = textColor();
+    if (c.options.scales?.x?.ticks) c.options.scales.x.ticks.color = textColor();
+    c.update('none');
+  });
 }
 
-// ==================== ZONE SETUP ====================
-
-const zones = [
-  { name: 'Checkout Zone', max: 15, color: '#6c8fff' },
-  { name: 'Cosmetics Section', max: 15, color: '#a855f7' },
-  { name: 'Aisle 3', max: 15, color: '#22d3a0' },
-  { name: 'Entrance / Exit', max: 15, color: '#f59e0b' },
-  { name: 'Skincare Corner', max: 15, color: '#ff4d6a' },
+// ===================== ZONES =====================
+const ZONES = [
+  {name:'Checkout Zone',   color:'var(--blue)'},
+  {name:'Cosmetics',        color:'var(--purple)'},
+  {name:'Aisle 3',          color:'var(--green)'},
+  {name:'Entrance/Exit',    color:'var(--amber)'},
+  {name:'Skincare Corner',  color:'var(--red)'},
+];
+const SIGNALS = [
+  {label:'Avg Dwell Time',    id:'sig0', icon:'⏱'},
+  {label:'High Intent Zones', id:'sig1', icon:'🎯'},
+  {label:'Conversion Est.',   id:'sig2', icon:'📈'},
+  {label:'Queue Length',      id:'sig3', icon:'🔢'},
+  {label:'Staff Needed',      id:'sig4', icon:'👤'},
 ];
 
-function buildZones() {
-  const container = document.getElementById('zoneList');
-  container.innerHTML = zones.map((z, i) => `
+(function buildZones() {
+  document.getElementById('zoneList').innerHTML = ZONES.map((z,i)=>`
     <div class="zone-row">
       <div class="zone-info">
         <div class="zone-name">${z.name}</div>
-        <div class="zone-count" id="zone-count-${i}">—</div>
+        <div class="zone-pct" id="zp${i}">0%</div>
       </div>
-      <div class="zone-bar-bg">
-        <div class="zone-bar" id="zone-bar-${i}" style="background:${z.color}; width:0%;"></div>
+      <div class="zone-track"><div class="zone-fill" id="zf${i}" style="background:${z.color};width:0%"></div></div>
+    </div>`).join('');
+  document.getElementById('signalList').innerHTML = SIGNALS.map(s=>`
+    <div class="zone-row">
+      <div class="zone-info">
+        <div class="zone-name">${s.icon} ${s.label}</div>
+        <div class="zone-pct" id="${s.id}">—</div>
       </div>
-    </div>
-  `).join('');
-}
-buildZones();
+    </div>`).join('');
+})();
 
-function buildMusicBars() {
-  const container = document.getElementById('musicVisual');
-  container.innerHTML = Array(18).fill('').map((_, i) => {
-    const minH = 15 + Math.random() * 20;
-    const maxH = 50 + Math.random() * 50;
-    const dur = 0.5 + Math.random() * 0.8;
-    const delay = Math.random() * 0.5;
-    return `<div class="bar-vis" style="--min:${minH}%; --max:${maxH}%; --dur:${dur}s; animation-delay:${delay}s;"></div>`;
+// ===================== MUSIC BARS =====================
+(function buildBars(){
+  document.getElementById('musicBars').innerHTML = Array(22).fill('').map(()=>{
+    const h1 = 10+Math.random()*25, h2 = 45+Math.random()*55;
+    const d = 0.5+Math.random()*0.9, dl = Math.random()*0.6;
+    const isDarkNow = document.documentElement.getAttribute('data-theme')==='dark';
+    return `<div class="mbar" style="--h1:${h1}%;--h2:${h2}%;--d:${d}s;--dl:${dl}s;background:linear-gradient(to top,var(--gold),var(--purple))"></div>`;
   }).join('');
+})();
+
+// ===================== SOUND ENGINE =====================
+let actx = null, masterGain = null, ambNodes = [], soundOn = false, curVibe = '', alertCD = false;
+
+function initActx() {
+  if (actx) return;
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = actx.createGain(); masterGain.gain.value = 0.4;
+  masterGain.connect(actx.destination);
 }
-buildMusicBars();
+function setVol(v) { if (masterGain) masterGain.gain.setTargetAtTime(v/100, actx.currentTime, 0.1); }
+function toggleSound() {
+  if (!soundOn) {
+    initActx(); soundOn = true;
+    const btn = document.getElementById('soundBtn');
+    btn.textContent = '🔊 Sound ON'; btn.classList.add('on');
+    playAmbient(curVibe || 'Cozy & Premium');
+  } else {
+    stopAmb(); soundOn = false;
+    const btn = document.getElementById('soundBtn');
+    btn.textContent = '▶ Enable Sound'; btn.classList.remove('on');
+  }
+}
+function stopAmb() { ambNodes.forEach(n=>{try{n.stop()}catch(e){}}); ambNodes = []; }
+function playAmbient(vibe) {
+  if (!actx||!soundOn) return; stopAmb();
+  if (vibe==='Cozy & Premium') { chord([261.63,329.63,392],'sine',0.055,true); brownNoise(0.014); }
+  else if (vibe==='Moderate & Buzzing') { chord([220,261.63,329.63],'triangle',0.06,true); pinkNoise(0.016); beat(1.8,80,0.07); }
+  else { chord([329.63,415.3,493.88],'sawtooth',0.045,true); whiteNoise(0.01); beat(2.5,85,0.1); beat(5,600,0.035); }
+}
+function chord(freqs,type,gain,loop) {
+  freqs.forEach((f,i)=>{
+    const o=actx.createOscillator(), g=actx.createGain(), flt=actx.createBiquadFilter();
+    o.type=type; o.frequency.value=f; o.detune.value=(Math.random()-.5)*10;
+    flt.type='lowpass'; flt.frequency.value=900+Math.random()*300;
+    g.gain.value=0; g.gain.setTargetAtTime(gain, actx.currentTime+i*0.3, 0.6);
+    o.connect(flt); flt.connect(g); g.connect(masterGain); o.start();
+    const lfo=actx.createOscillator(), lg=actx.createGain();
+    lfo.frequency.value=0.18+Math.random()*0.12; lg.gain.value=gain*0.25;
+    lfo.connect(lg); lg.connect(g.gain); lfo.start();
+    ambNodes.push(o,lfo);
+  });
+}
+function makeBuf(gen,sec) {
+  const sz=actx.sampleRate*sec, buf=actx.createBuffer(1,sz,actx.sampleRate), d=buf.getChannelData(0);
+  gen(d,sz); return buf;
+}
+function playBuf(buf,vol,lpFreq=500) {
+  const src=actx.createBufferSource(), g=actx.createGain(), f=actx.createBiquadFilter();
+  src.buffer=buf; src.loop=true; f.type='lowpass'; f.frequency.value=lpFreq;
+  g.gain.value=vol; src.connect(f); f.connect(g); g.connect(masterGain); src.start();
+  ambNodes.push(src);
+}
+function brownNoise(v){ playBuf(makeBuf((d,sz)=>{let l=0;for(let i=0;i<sz;i++){const w=Math.random()*2-1;d[i]=(l+.02*w)/1.02*3.5;l=d[i];}},4),v,600); }
+function pinkNoise(v){ playBuf(makeBuf((d,sz)=>{let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;for(let i=0;i<sz;i++){const w=Math.random()*2-1;b0=.99886*b0+w*.0555179;b1=.99332*b1+w*.0750759;b2=.969*b2+w*.153852;b3=.8665*b3+w*.3104856;b4=.55*b4+w*.5329522;b5=-.7616*b5-w*.016898;d[i]=(b0+b1+b2+b3+b4+b5+b6+w*.5362)*.11;b6=w*.115926;}},4),v,800); }
+function whiteNoise(v){ playBuf(makeBuf((d,sz)=>{for(let i=0;i<sz;i++)d[i]=Math.random()*2-1;},2),v,1200); }
+function beat(bpm,freq,vol) {
+  const iv=60/bpm; let t=actx.currentTime+0.1;
+  const sched=()=>{
+    if(!soundOn)return;
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.frequency.value=freq+Math.random()*10; o.type='sine';
+    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+.18);
+    o.connect(g);g.connect(masterGain);o.start(t);o.stop(t+.2);
+    t+=iv; setTimeout(sched,(iv-.08)*1000);
+  };
+  sched();
+}
+function alertSound(type) {
+  if(!actx||!soundOn||alertCD)return;
+  alertCD=true; setTimeout(()=>alertCD=false,4000);
+  if(type==='critical'){
+    [0,.22,.44].forEach((dl,i)=>{
+      const o=actx.createOscillator(),g=actx.createGain();
+      o.frequency.value=i%2===0?920:680; o.type='square';
+      g.gain.setValueAtTime(0,actx.currentTime+dl);
+      g.gain.linearRampToValueAtTime(.28,actx.currentTime+dl+.025);
+      g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+dl+.2);
+      o.connect(g);g.connect(masterGain);o.start(actx.currentTime+dl);o.stop(actx.currentTime+dl+.22);
+    });
+  } else {
+    [440,560].forEach((f,i)=>{
+      const o=actx.createOscillator(),g=actx.createGain();
+      o.frequency.value=f; o.type='sine';
+      g.gain.setValueAtTime(0,actx.currentTime+i*.2);
+      g.gain.linearRampToValueAtTime(.12,actx.currentTime+i*.2+.03);
+      g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+i*.2+.32);
+      o.connect(g);g.connect(masterGain);o.start(actx.currentTime+i*.2);o.stop(actx.currentTime+i*.2+.36);
+    });
+  }
+}
 
-// ==================== DATA FETCH ====================
+// ===================== STREAM MODAL =====================
+let camStream=null, mirrored=false;
+function openModal()  { document.getElementById('streamOverlay').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal() { document.getElementById('streamOverlay').classList.remove('open'); document.body.style.overflow=''; }
+function overlayClick(e){ if(e.target===document.getElementById('streamOverlay')) closeModal(); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
 
-let alertHistory = [];
-let vibeHistory = [];
-let lastTimestamp = '';
-
-const MUSIC_MAP = {
-  'Cozy & Premium': { title: 'Soft Acoustic Melodies', sub: 'Warm background ambience', tag: '🎸 Acoustic' },
-  'Moderate & Buzzing': { title: 'Lo-Fi Indie Grooves', sub: 'Mid-energy atmosphere blend', tag: '🎧 Lo-Fi' },
-  'Energetic & Crowded': { title: 'Upbeat Synth-Pop', sub: 'High-energy crowd mode', tag: '⚡ Synth-Pop' },
-};
-
-const VIBE_NUM = {
-  'Cozy & Premium': 1,
-  'Moderate & Buzzing': 2,
-  'Energetic & Crowded': 3,
-};
-
-async function fetchData() {
+function switchTab(tab, btn) {
+  ['webcam','file','rtsp','webrtc'].forEach(t=>{
+    document.getElementById(`panel-${t}`).style.display = t===tab?'block':'none';
+  });
+  document.querySelectorAll('.mtab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function setStatus(state,text,meta=''){
+  const d=document.getElementById('sdot');
+  d.className='sdot'+(state==='live'?' live':state==='err'?' err':'');
+  document.getElementById('stext').textContent=text;
+  document.getElementById('smeta').textContent=meta;
+}
+function showEl(id){
+  ['camVideo','fileVideo','rtcFrame'].forEach(v=>document.getElementById(v).style.display=v===id?'block':'none');
+  document.getElementById('vpPlaceholder').style.display='none';
+}
+function showPlaceholder(msg='No stream active'){
+  ['camVideo','fileVideo','rtcFrame'].forEach(v=>document.getElementById(v).style.display='none');
+  document.getElementById('vpPlaceholder').style.display='flex';
+  setStatus('off',msg);
+}
+async function startWebcam(){
   try {
-    const res = await fetch('/api/v1/store/vibe');
-    if (!res.ok) throw new Error('API error');
-    const d = await res.json();
+    if(camStream) stopAll();
+    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    camStream=s; const v=document.getElementById('camVideo');
+    v.srcObject=s; showEl('camVideo');
+    const t=s.getVideoTracks()[0],st=t.getSettings();
+    setStatus('live','● Camera Live',`${st.width||'—'}×${st.height||'—'}`);
+  } catch(e){ setStatus('err','Camera denied — check browser permissions'); }
+}
+function stopAll(){
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+  document.getElementById('camVideo').srcObject=null;
+  const f=document.getElementById('fileVideo'); f.pause();f.src='';
+  document.getElementById('rtcFrame').src='';
+  const m=document.getElementById('mjpegImg'); if(m)m.remove();
+  showPlaceholder('Stream stopped');
+}
+function mirrorCam(){ mirrored=!mirrored; document.getElementById('camVideo').style.transform=mirrored?'scaleX(-1)':''; }
+function snap(){
+  const v=document.getElementById('camVideo'); if(!v.srcObject)return;
+  const c=document.createElement('canvas'); c.width=v.videoWidth;c.height=v.videoHeight;
+  c.getContext('2d').drawImage(v,0,0);
+  const a=document.createElement('a'); a.href=c.toDataURL('image/png');
+  a.download=`vibesense-${Date.now()}.png`; a.click();
+}
+function loadServer(){
+  const v=document.getElementById('fileVideo');
+  v.src='/static/store.mp4';
+  v.onerror=()=>{v.src='/store.mp4'; v.onerror=()=>setStatus('err','store.mp4 not found. Mount StaticFiles in main.py');};
+  v.oncanplay=()=>{ showEl('fileVideo'); setStatus('live','● store.mp4 Playing',`${v.videoWidth}×${v.videoHeight}`); };
+  showEl('fileVideo');
+}
+function loadLocal(e){
+  const f=e.target.files[0]; if(!f)return;
+  const v=document.getElementById('fileVideo');
+  v.src=URL.createObjectURL(f);
+  v.oncanplay=()=>{ showEl('fileVideo'); setStatus('live',`● ${f.name}`,`${(f.size/1e6).toFixed(1)}MB`); };
+}
+function loadMJPEG(){
+  const url=document.getElementById('rtspInput').value.trim(); if(!url)return;
+  ['camVideo','fileVideo','rtcFrame'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('vpPlaceholder').style.display='none';
+  const old=document.getElementById('mjpegImg'); if(old)old.remove();
+  const img=document.createElement('img'); img.id='mjpegImg';
+  img.src=url; img.style.cssText='width:100%;height:100%;object-fit:contain;position:absolute;inset:0;';
+  img.onerror=()=>setStatus('err','Cannot connect — check URL or CORS');
+  img.onload=()=>setStatus('live','● IP Camera Live',url.split('/')[2]||'');
+  document.getElementById('viewport').appendChild(img);
+  setStatus('live','Connecting...',url);
+}
+function loadRTC(){
+  const url=document.getElementById('rtcInput').value.trim(); if(!url)return;
+  const f=document.getElementById('rtcFrame'); f.src=url;
+  f.onload=()=>setStatus('live','● WebRTC Embedded',url.split('/')[2]||'');
+  showEl('rtcFrame'); setStatus('live','Loading...',url);
+}
 
-    const count = d.current_occupancy ?? 0;
-    const vibe = d.store_vibe ?? 'Cozy & Premium';
-    const music = d.ambient_music ?? '';
+// ===================== MUSIC MAP =====================
+const MUSIC = {
+  'Cozy & Premium':     {name:'Soft Acoustic Melodies',  desc:'Warm, intimate store atmosphere'},
+  'Moderate & Buzzing': {name:'Lo-Fi Indie Grooves',     desc:'Mid-energy, engaging blend'},
+  'Energetic & Crowded':{name:'Upbeat Synth-Pop',        desc:'High-energy crowd atmosphere'},
+};
+const VIBE_N = {'Cozy & Premium':1,'Moderate & Buzzing':2,'Energetic & Crowded':3};
+
+// ===================== DATA FETCH =====================
+let prevAlerts=[], donutCounts=[0,0,0];
+
+async function fetchData(){
+  try {
+    const r=await fetch('/api/v1/store/vibe');
+    if(!r.ok) throw new Error('api');
+    const d=await r.json();
+
+    const count  = d.current_occupancy ?? 0;
+    const vibe   = d.store_vibe ?? 'Cozy & Premium';
+    const music  = d.ambient_music ?? '';
     const alerts = d.realtime_alerts ?? [];
+    const now    = new Date();
+    const ts     = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 
-    // Stat cards
-    document.getElementById('occupancyVal').textContent = count;
-    document.getElementById('occupancySub').textContent =
-      count > 10 ? '🔴 High capacity' : count > 5 ? '🟡 Moderate traffic' : '🟢 Low traffic';
-    document.getElementById('moodVal').textContent = vibe;
-    document.getElementById('moodSub').textContent = `Updated just now`;
-    document.getElementById('audioVal').textContent = music;
-    document.getElementById('alertCount').textContent = alerts.length;
-    document.getElementById('alertStatus').textContent = alerts.length > 0 ? '⚠️ Review needed' : '✅ All clear';
+    // KPIs
+    document.getElementById('kpiOcc').textContent = count;
+    document.getElementById('kpiOccBadge').textContent = count>10?'HIGH':count>5?'MODERATE':'LOW';
+    document.getElementById('kpiOccBadge').className = 'kpi-badge '+(count>10?'down':count>5?'neu':'up');
+    document.getElementById('kpiOccDelta').textContent = `${count} people in-store`;
+    document.getElementById('kpiVibe').textContent = vibe;
+    document.getElementById('kpiAudio').textContent = music;
+    document.getElementById('kpiAlerts').textContent = alerts.length;
+    document.getElementById('kpiAlertBadge').textContent = alerts.length>0?'ACTION NEEDED':'ALL CLEAR';
+    document.getElementById('kpiAlertBadge').className = 'kpi-badge '+(alerts.length>0?'down':'up');
 
-    // Anomaly banner
+    // Anomaly
     const isAnomaly = count > 10;
     document.getElementById('anomalyBanner').classList.toggle('visible', isAnomaly);
+    document.getElementById('hAnomaly').textContent = isAnomaly?'TRIGGERED':'CLEAR';
+    document.getElementById('hAnomaly').className = 'health-badge '+(isAnomaly?'hb-err':'hb-ok');
+    document.getElementById('hApi').className = 'health-badge hb-ok';
+    document.getElementById('hTime').textContent = ts;
 
-    // System status
-    document.getElementById('statusAnomaly').textContent = isAnomaly ? 'TRIGGERED' : 'CLEAR';
-    document.getElementById('statusAnomaly').className = 'status-badge ' + (isAnomaly ? 'err' : 'ok');
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    document.getElementById('statusTime').textContent = timeStr;
-    document.getElementById('lastUpdated').textContent = timeStr;
-
-    // Occupancy chart
+    // Charts
     occData.push(count); occData.shift();
     occChart.data.datasets[0].data = [...occData];
     occChart.update('none');
 
-    // Vibe chart
-    const vibeNum = VIBE_NUM[vibe] || 1;
-    vibeData.push(vibeNum); vibeData.shift();
+    const vn = VIBE_N[vibe]||1;
+    vibeData.push(vn); vibeData.shift();
     vibeChart.data.datasets[0].data = [...vibeData];
-    vibeChart.data.datasets[0].backgroundColor = vibeData.map(v => vibeColor(v));
+    vibeChart.data.datasets[0].backgroundColor = vibeData.map(vc);
     vibeChart.update('none');
 
-    // Mood chips
-    ['cozy','moderate','energetic'].forEach(k => {
-      document.getElementById(`chip-${k}`).classList.remove('active');
-    });
-    if (vibe === 'Cozy & Premium') document.getElementById('chip-cozy').classList.add('active');
-    else if (vibe === 'Moderate & Buzzing') document.getElementById('chip-moderate').classList.add('active');
-    else document.getElementById('chip-energetic').classList.add('active');
+    // Donut
+    donutCounts[vn-1]++;
+    const total = donutCounts.reduce((a,b)=>a+b,0)||1;
+    const p = donutCounts.map(v=>Math.round(v/total*100));
+    donutChart.data.datasets[0].data = p;
+    donutChart.update('none');
+    document.getElementById('donutNum').textContent = count;
+    ['dl1','dl2','dl3'].forEach((id,i)=>document.getElementById(id).textContent=`${p[i]}%`);
 
-    // Music card + trigger ambient sound on vibe change
-    const mInfo = MUSIC_MAP[vibe] || MUSIC_MAP['Cozy & Premium'];
-    document.getElementById('musicTitle').textContent = mInfo.title;
-    document.getElementById('musicSub').textContent = mInfo.sub;
-    document.getElementById('musicTag').textContent = mInfo.tag;
-    if (vibe !== currentVibe) {
-      currentVibe = vibe;
-      if (soundEnabled) playAmbient(vibe);
-    }
+    // Music
+    const mi = MUSIC[vibe]||MUSIC['Cozy & Premium'];
+    document.getElementById('musicName').textContent = mi.name;
+    document.getElementById('musicDesc').textContent = mi.desc;
+    if (vibe !== curVibe) { curVibe = vibe; if(soundOn) playAmbient(vibe); }
 
-    // Zone simulation (distributed from total count)
-    zones.forEach((z, i) => {
-      const zCount = Math.max(0, Math.round(count * (0.1 + Math.random() * 0.35)));
-      const pct = Math.min(100, Math.round((zCount / z.max) * 100));
-      document.getElementById(`zone-count-${i}`).textContent = `${zCount} people`;
-      document.getElementById(`zone-bar-${i}`).style.width = pct + '%';
+    // Zones
+    ZONES.forEach((_,i)=>{
+      const zc = Math.max(0,Math.round(count*(0.08+Math.random()*0.3)));
+      const pct = Math.min(100,Math.round(zc/15*100));
+      document.getElementById(`zp${i}`).textContent = `${pct}%`;
+      document.getElementById(`zf${i}`).style.width = pct+'%';
     });
+
+    // Signals
+    document.getElementById('sig0').textContent = `${Math.round(2+count*0.4)}min`;
+    document.getElementById('sig1').textContent = `${Math.min(5,Math.round(count/3))} zones`;
+    document.getElementById('sig2').textContent = `${Math.min(98,Math.round(40+count*3))}%`;
+    document.getElementById('sig3').textContent = count>10?'Long':'Short';
+    document.getElementById('sig4').textContent = count>10?'3+':count>5?'2':'1';
 
     // Alerts
-    const alertsList = document.getElementById('alertsList');
-    const newAlerts = alerts.filter(a => !alertHistory.includes(a));
-    // Play sound for new alerts
-    if (newAlerts.length > 0) {
-      const hasCritical = newAlerts.some(a => a.toLowerCase().includes('critical'));
-      playAlertSound(hasCritical ? 'critical' : 'warning');
-    }
-    alertHistory = alerts;
+    const newA = alerts.filter(a=>!prevAlerts.includes(a));
+    if(newA.length>0) alertSound(newA.some(a=>a.toLowerCase().includes('critical'))?'critical':'warning');
+    prevAlerts = alerts;
+    const sc = document.getElementById('alertScroll');
+    document.getElementById('alertBadge').textContent = alerts.length;
+    sc.innerHTML = alerts.length===0
+      ? '<div class="no-alerts">🟢 All systems normal</div>'
+      : alerts.map(a=>{
+          const isCrit=a.toLowerCase().includes('critical');
+          const isFloor=a.toLowerCase().includes('floor');
+          const pip=isCrit?'pip-crit':isFloor?'pip-warn':'pip-info';
+          return `<div class="alert-row"><div class="alert-pip ${pip}"></div><div class="alert-body"><div class="alert-msg">${a}</div><div class="alert-meta">${ts}</div></div></div>`;
+        }).join('');
 
-    if (alerts.length === 0) {
-      alertsList.innerHTML = `<div style="color:var(--muted);font-size:13px;font-family:var(--font-mono);padding:20px 0;text-align:center;">✅ No active alerts</div>`;
-    } else {
-      alertsList.innerHTML = alerts.map(a => {
-        const isCrit = a.toLowerCase().includes('critical');
-        const isFloor = a.toLowerCase().includes('floor');
-        const dotClass = isCrit ? 'critical' : isFloor ? 'warning' : 'info';
-        return `
-          <div class="alert-item">
-            <div class="alert-dot ${dotClass}"></div>
-            <div>
-              <div class="alert-text">${a}</div>
-              <div class="alert-time">${timeStr}</div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-    document.getElementById('alertCountLabel').textContent = `${alerts.length} alert${alerts.length !== 1 ? 's' : ''}`;
-
-  } catch (e) {
-    document.getElementById('occupancySub').textContent = 'Connection error';
-    document.getElementById('statusApi').textContent = 'OFFLINE';
-    document.getElementById('statusApi').className = 'status-badge err';
+    document.getElementById('footerTime').textContent = `Last updated: ${ts}`;
+  } catch(e){
+    document.getElementById('hApi').textContent='OFFLINE';
+    document.getElementById('hApi').className='health-badge hb-err';
   }
 }
 
 fetchData();
 setInterval(fetchData, 3000);
-
-// ==================== STREAM MODAL ====================
-
-let webcamStream = null;
-let activeTab = 'webcam';
-let mirrored = false;
-
-function openStreamModal() {
-  document.getElementById('streamModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeStreamModal() {
-  document.getElementById('streamModal').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function onOverlayClick(e) {
-  if (e.target === document.getElementById('streamModal')) closeStreamModal();
-}
-
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeStreamModal(); });
-
-function switchTab(tab) {
-  activeTab = tab;
-  ['webcam','file','rtsp','webrtc'].forEach(t => {
-    document.getElementById(`panel-${t}`).style.display = t === tab ? 'block' : 'none';
-    document.querySelectorAll('.tab-btn')[['webcam','file','rtsp','webrtc'].indexOf(t)]
-      .classList.toggle('active', t === tab);
-  });
-}
-
-function setStreamStatus(state, text, meta = '') {
-  const dot = document.getElementById('streamDot');
-  dot.className = 'stream-status-dot' + (state === 'live' ? ' live' : state === 'error' ? ' error' : '');
-  document.getElementById('streamStatusText').textContent = text;
-  document.getElementById('streamMeta').textContent = meta;
-}
-
-function showVideo(id) {
-  ['streamVideo','fileVideo','webrtcFrame'].forEach(vid => {
-    document.getElementById(vid).style.display = vid === id ? 'block' : 'none';
-  });
-  document.getElementById('streamPlaceholder').style.display = 'none';
-}
-
-function showPlaceholder(msg = 'No stream active') {
-  ['streamVideo','fileVideo','webrtcFrame'].forEach(vid => {
-    document.getElementById(vid).style.display = 'none';
-  });
-  document.getElementById('streamPlaceholder').style.display = 'flex';
-  document.getElementById('streamPlaceholder').querySelector('div:nth-child(2)').textContent = msg;
-  setStreamStatus('off', 'No stream active');
-}
-
-// --- WEBCAM ---
-async function startWebcam() {
-  try {
-    if (webcamStream) stopStream();
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-    webcamStream = stream;
-    const vid = document.getElementById('streamVideo');
-    vid.srcObject = stream;
-    showVideo('streamVideo');
-    const track = stream.getVideoTracks()[0];
-    const settings = track.getSettings();
-    setStreamStatus('live', '● Webcam Live', `${settings.width || '—'}×${settings.height || '—'}`);
-  } catch(e) {
-    setStreamStatus('error', 'Camera access denied — check browser permissions', '');
-  }
-}
-
-function stopStream() {
-  if (webcamStream) { webcamStream.getTracks().forEach(t => t.stop()); webcamStream = null; }
-  const vid = document.getElementById('streamVideo');
-  vid.srcObject = null;
-  showPlaceholder('Stream stopped');
-}
-
-function toggleMirror() {
-  mirrored = !mirrored;
-  document.getElementById('streamVideo').style.transform = mirrored ? 'scaleX(-1)' : 'scaleX(1)';
-}
-
-function takeSnapshot() {
-  const vid = document.getElementById('streamVideo');
-  if (!vid.srcObject) return;
-  const canvas = document.createElement('canvas');
-  canvas.width = vid.videoWidth; canvas.height = vid.videoHeight;
-  canvas.getContext('2d').drawImage(vid, 0, 0);
-  const a = document.createElement('a');
-  a.href = canvas.toDataURL('image/png');
-  a.download = `vibesense-snapshot-${Date.now()}.png`;
-  a.click();
-}
-
-// --- FILE / store.mp4 ---
-function loadServerVideo() {
-  const vid = document.getElementById('fileVideo');
-  vid.src = '/static/store.mp4';
-  vid.onerror = () => {
-    // try root path
-    vid.src = '/store.mp4';
-    vid.onerror = () => setStreamStatus('error', 'store.mp4 not found on server. Mount it at /static/store.mp4', '');
-  };
-  vid.oncanplay = () => {
-    showVideo('fileVideo');
-    setStreamStatus('live', '● store.mp4 Playing', `${vid.videoWidth}×${vid.videoHeight}`);
-  };
-  showVideo('fileVideo');
-}
-
-function loadFileStream(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const vid = document.getElementById('fileVideo');
-  vid.src = URL.createObjectURL(file);
-  vid.oncanplay = () => {
-    showVideo('fileVideo');
-    setStreamStatus('live', `● ${file.name}`, `${(file.size/1e6).toFixed(1)} MB`);
-  };
-}
-
-function stopFileStream() {
-  const vid = document.getElementById('fileVideo');
-  vid.pause(); vid.src = '';
-  showPlaceholder('Stream stopped');
-}
-
-// --- IP / RTSP (MJPEG HTTP) ---
-function loadRtspStream() {
-  const url = document.getElementById('rtspUrl').value.trim();
-  if (!url) return;
-  const vid = document.getElementById('streamVideo');
-
-  // Try as MJPEG img stream first (common for IP cams)
-  // Use an <img> tag for MJPEG
-  document.getElementById('streamPlaceholder').style.display = 'none';
-  ['streamVideo','fileVideo','webrtcFrame'].forEach(id => {
-    document.getElementById(id).style.display = 'none';
-  });
-
-  // Remove old img if any
-  const old = document.getElementById('mjpegImg');
-  if (old) old.remove();
-
-  const img = document.createElement('img');
-  img.id = 'mjpegImg';
-  img.src = url;
-  img.style.cssText = 'width:100%;height:100%;object-fit:contain;position:absolute;inset:0;';
-  img.onerror = () => setStreamStatus('error', 'Cannot connect — check URL, CORS, or use a proxy', '');
-  img.onload = () => setStreamStatus('live', '● IP Camera Stream Live', url.split('/')[2] || '');
-  document.getElementById('streamViewport').appendChild(img);
-  setStreamStatus('live', 'Connecting...', url);
-}
-
-// --- WEBRTC URL ---
-function loadWebRTC() {
-  const url = document.getElementById('webrtcUrl').value.trim();
-  if (!url) return;
-  const frame = document.getElementById('webrtcFrame');
-  frame.src = url;
-  frame.onload = () => setStreamStatus('live', '● WebRTC Stream Embedded', url.split('/')[2] || '');
-  showVideo('webrtcFrame');
-  setStreamStatus('live', 'Loading WebRTC...', url);
-}
-
-function stopWebRTC() {
-  const frame = document.getElementById('webrtcFrame');
-  frame.src = '';
-  const old = document.getElementById('mjpegImg');
-  if (old) old.remove();
-  showPlaceholder('Stream stopped');
-}
-
 </script>
 </body>
 </html>
