@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from typing import List
 import uvicorn
 
-from event_store import events_db
+from event_store import events_db, add_event_from_model   # FIX: import unified ingest helper
 from core_ai import StoreMonitor
 from vibe_engine import store_metrics
 from models import Event
@@ -39,7 +39,7 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="."), name="static")
 
-# FIX: seen_events properly defined (was missing — caused NameError)
+# Idempotency dedup set — cleared alongside events_db in test fixtures.
 seen_events: set = set()
 
 # ── Request logging middleware ────────────────────────────────────────
@@ -90,21 +90,29 @@ def get_store_vibe():
 def ingest_events(events: list[Event]):
     """
     Idempotent by event_id. Partial success on malformed events.
-    Safe to call twice with same payload.
+    Safe to call twice with the same payload.
+
+    FIX: routes through add_event_from_model() instead of calling
+    events_db.append() directly — single ingest code path.
     """
     inserted  = 0
     duplicate = 0
     errors    = []
+
     for event in events:
         try:
             if event.event_id in seen_events:
                 duplicate += 1
                 continue
             seen_events.add(event.event_id)
-            events_db.append(event.model_dump())
+            add_event_from_model(event.model_dump())   # FIX: unified path
             inserted += 1
         except Exception as e:
-            errors.append({"event_id": getattr(event, "event_id", "?"), "error": str(e)})
+            errors.append({
+                "event_id": getattr(event, "event_id", "?"),
+                "error":    str(e),
+            })
+
     logger.info(f"ingest inserted={inserted} duplicates={duplicate} errors={len(errors)}")
     return {
         "status":       "success",
@@ -122,7 +130,7 @@ def health():
     What an on-call engineer checks first.
     """
     now = datetime.now(timezone.utc)
-    feed_status = "NO_DATA"
+    feed_status   = "NO_DATA"
     last_event_at = None
 
     if events_db:
@@ -131,6 +139,9 @@ def health():
             if timestamps:
                 last_event_at = max(timestamps)
                 last_dt = datetime.fromisoformat(str(last_event_at).replace("Z", "+00:00"))
+                # FIX: defensive naive-aware guard (handles any legacy events)
+                if last_dt.tzinfo is None:
+                    last_dt = last_dt.replace(tzinfo=timezone.utc)
                 lag_sec = (now - last_dt).total_seconds()
                 feed_status = "STALE_FEED" if lag_sec > 600 else "LIVE"
         except Exception:
@@ -155,13 +166,16 @@ def health():
 def get_store_metrics(store_id: str):
     """
     Real-time: unique visitors, conversion rate, avg dwell per zone.
-    Excludes is_staff=True. Handles zero-traffic.
+    Excludes is_staff=True. Handles zero-traffic gracefully.
     """
-    evts = [e for e in events_db if e.get("store_id") == store_id and not e.get("is_staff", False)]
+    evts = [
+        e for e in events_db
+        if e.get("store_id") == store_id and not e.get("is_staff", False)
+    ]
 
     unique_visitors = len({e["visitor_id"] for e in evts if e.get("event_type") == "ENTRY"})
-    entries  = len([e for e in evts if e.get("event_type") == "ENTRY"])
-    exits    = len([e for e in evts if e.get("event_type") == "EXIT"])
+    entries = len([e for e in evts if e.get("event_type") == "ENTRY"])
+    exits   = len([e for e in evts if e.get("event_type") == "EXIT"])
 
     # Zone dwell
     zone_dwell: dict = defaultdict(list)
@@ -170,7 +184,11 @@ def get_store_metrics(store_id: str):
             zone_dwell[e["zone_id"]].append(e["dwell_ms"] / 1000)
 
     avg_dwell_per_zone = [
-        {"zone_id": z, "avg_dwell_sec": round(sum(v)/len(v), 2), "visit_count": len(v)}
+        {
+            "zone_id":       z,
+            "avg_dwell_sec": round(sum(v) / len(v), 2),
+            "visit_count":   len(v),
+        }
         for z, v in zone_dwell.items()
     ]
 
@@ -192,7 +210,11 @@ def get_store_metrics(store_id: str):
     abandon = len([e for e in evts if e.get("event_type") == "BILLING_QUEUE_ABANDON"])
     abandonment_rate = round(abandon / len(billing_vis), 4) if billing_vis else 0.0
 
-    data_confidence = "HIGH" if unique_visitors >= 50 else "MEDIUM" if unique_visitors >= 20 else "LOW"
+    data_confidence = (
+        "HIGH"   if unique_visitors >= 50 else
+        "MEDIUM" if unique_visitors >= 20 else
+        "LOW"
+    )
 
     return {
         "store_id":           store_id,
@@ -215,7 +237,10 @@ def get_funnel(store_id: str):
     Session-level funnel. Re-entries don't double-count.
     Entry → Zone Visit → Billing Queue → Purchase
     """
-    evts = [e for e in events_db if e.get("store_id") == store_id and not e.get("is_staff", False)]
+    evts = [
+        e for e in events_db
+        if e.get("store_id") == store_id and not e.get("is_staff", False)
+    ]
 
     sessions: dict = {}
     for e in sorted(evts, key=lambda x: str(x.get("timestamp", ""))):
@@ -223,45 +248,59 @@ def get_funnel(store_id: str):
         if not vid:
             continue
         if vid not in sessions:
-            sessions[vid] = {"entered": False, "visited_zone": False, "reached_billing": False}
+            sessions[vid] = {
+                "entered":          False,
+                "visited_zone":     False,
+                "reached_billing":  False,
+            }
         s  = sessions[vid]
         et = e.get("event_type", "")
         if et == "ENTRY":
             s["entered"] = True
         elif et == "REENTRY":
-            pass  # same session, not new visitor
+            pass   # same session — must not create a second ENTRY count
         elif et in ("ZONE_ENTER", "ZONE_DWELL") and e.get("zone_id"):
             s["visited_zone"] = True
         elif et == "BILLING_QUEUE_JOIN":
             s["reached_billing"] = True
 
-    abandon_ids = {e["visitor_id"] for e in evts if e.get("event_type") == "BILLING_QUEUE_ABANDON"}
+    abandon_ids = {
+        e["visitor_id"] for e in evts
+        if e.get("event_type") == "BILLING_QUEUE_ABANDON"
+    }
 
     entered   = sum(1 for s in sessions.values() if s["entered"])
     visited   = sum(1 for s in sessions.values() if s["entered"] and s["visited_zone"])
     billing   = sum(1 for s in sessions.values() if s["reached_billing"])
-    purchased = sum(1 for vid, s in sessions.items() if s["reached_billing"] and vid not in abandon_ids)
+    purchased = sum(
+        1 for vid, s in sessions.items()
+        if s["reached_billing"] and vid not in abandon_ids
+    )
 
-    def drop(cur, prev): return round((1 - cur/prev)*100, 1) if prev > 0 else 0.0
+    def drop(cur, prev):
+        return round((1 - cur / prev) * 100, 1) if prev > 0 else 0.0
 
     return {
         "store_id": store_id,
         "stages": [
-            {"stage": "ENTRY",         "count": entered,   "dropoff_pct": drop(entered, len(sessions))},
-            {"stage": "ZONE_VISIT",    "count": visited,   "dropoff_pct": drop(visited, entered)},
-            {"stage": "BILLING_QUEUE", "count": billing,   "dropoff_pct": drop(billing, visited)},
+            {"stage": "ENTRY",         "count": entered,   "dropoff_pct": drop(entered,   len(sessions))},
+            {"stage": "ZONE_VISIT",    "count": visited,   "dropoff_pct": drop(visited,   entered)},
+            {"stage": "BILLING_QUEUE", "count": billing,   "dropoff_pct": drop(billing,   visited)},
             {"stage": "PURCHASE",      "count": purchased, "dropoff_pct": drop(purchased, billing)},
-        ]
+        ],
     }
 
 # ── GET /stores/{store_id}/heatmap ────────────────────────────────────
 @app.get("/stores/{store_id}/heatmap")
 def get_heatmap(store_id: str):
     """
-    Zone visit frequency + avg dwell, normalised 0-100.
+    Zone visit frequency + avg dwell, normalised 0–100.
     data_confidence=LOW if fewer than 20 sessions.
     """
-    evts = [e for e in events_db if e.get("store_id") == store_id and not e.get("is_staff", False)]
+    evts = [
+        e for e in events_db
+        if e.get("store_id") == store_id and not e.get("is_staff", False)
+    ]
 
     zone_visits: dict = defaultdict(int)
     zone_dwell:  dict = defaultdict(list)
@@ -283,25 +322,33 @@ def get_heatmap(store_id: str):
         zones.append({
             "zone_id":          z,
             "visit_frequency":  visits,
-            "avg_dwell_sec":    round(sum(d)/len(d), 2) if d else 0.0,
+            "avg_dwell_sec":    round(sum(d) / len(d), 2) if d else 0.0,
             "normalised_score": round(visits / max_v * 100, 1),
             "data_confidence":  "LOW" if unique_sessions < 20 else "HIGH",
         })
+
     zones.sort(key=lambda z: z["normalised_score"], reverse=True)
-    return {"store_id": store_id, "zones": zones, "generated_at": datetime.now(timezone.utc).isoformat()}
+    return {
+        "store_id":     store_id,
+        "zones":        zones,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
 
 # ── GET /stores/{store_id}/anomalies ──────────────────────────────────
 @app.get("/stores/{store_id}/anomalies")
 def get_anomalies(store_id: str):
     """
     Active anomalies: QUEUE_SPIKE, CONVERSION_DROP, DEAD_ZONE, CAPACITY_EXCEEDED.
-    Each with severity + suggested_action.
+    Each entry includes severity + suggested_action.
     """
     now  = datetime.now(timezone.utc)
-    evts = [e for e in events_db if e.get("store_id") == store_id and not e.get("is_staff", False)]
+    evts = [
+        e for e in events_db
+        if e.get("store_id") == store_id and not e.get("is_staff", False)
+    ]
     anomalies = []
 
-    # Queue spike
+    # ── Queue spike (last 5 min) ──────────────────────────────────────
     recent = [e for e in evts if _within_minutes(e.get("timestamp"), 5)]
     queue  = max(0,
         sum(1 for e in recent if e.get("event_type") == "BILLING_QUEUE_JOIN") -
@@ -309,45 +356,52 @@ def get_anomalies(store_id: str):
     )
     if queue >= 5:
         anomalies.append({
-            "anomaly_type": "BILLING_QUEUE_SPIKE",
-            "severity": "CRITICAL" if queue >= 8 else "WARN",
-            "description": f"Billing queue depth is {queue}.",
+            "anomaly_type":     "BILLING_QUEUE_SPIKE",
+            "severity":         "CRITICAL" if queue >= 8 else "WARN",
+            "description":      f"Billing queue depth is {queue}.",
             "suggested_action": "Open additional counter immediately.",
-            "zone_id": "BILLING", "value": queue,
+            "zone_id":          "BILLING",
+            "value":            queue,
         })
 
-    # Conversion drop
+    # ── Conversion drop ───────────────────────────────────────────────
     entries_set = {e["visitor_id"] for e in evts if e.get("event_type") == "ENTRY"}
     billing_set = {e["visitor_id"] for e in evts if e.get("event_type") == "BILLING_QUEUE_JOIN"}
     if len(entries_set) >= 10:
         conv = len(billing_set) / len(entries_set)
         if conv < 0.25:
             anomalies.append({
-                "anomaly_type": "CONVERSION_DROP",
-                "severity": "WARN",
-                "description": f"Conversion {conv:.1%} below 25% baseline. {len(entries_set)} visitors, {len(billing_set)} reached billing.",
+                "anomaly_type":     "CONVERSION_DROP",
+                "severity":         "WARN",
+                "description":      (
+                    f"Conversion {conv:.1%} below 25% baseline. "
+                    f"{len(entries_set)} visitors, {len(billing_set)} reached billing."
+                ),
                 "suggested_action": "Deploy floor staff to guide customers to billing.",
-                "value": round(conv, 4),
+                "value":            round(conv, 4),
             })
 
-    # Dead zones (no visits in 30 min)
-    active_zones = {e.get("zone_id") for e in evts if e.get("zone_id") and _within_minutes(e.get("timestamp"), 30)}
-    all_zones    = {e.get("zone_id") for e in evts if e.get("zone_id")}
+    # ── Dead zones (no visits in last 30 min) ─────────────────────────
+    active_zones = {
+        e.get("zone_id") for e in evts
+        if e.get("zone_id") and _within_minutes(e.get("timestamp"), 30)
+    }
+    all_zones = {e.get("zone_id") for e in evts if e.get("zone_id")}
     for z in (all_zones - active_zones):
         anomalies.append({
-            "anomaly_type": "DEAD_ZONE",
-            "severity": "INFO",
-            "description": f"Zone '{z}' has had no customer visits in 30 min.",
+            "anomaly_type":     "DEAD_ZONE",
+            "severity":         "INFO",
+            "description":      f"Zone '{z}' has had no customer visits in 30 min.",
             "suggested_action": f"Check merchandising in {z}.",
-            "zone_id": z,
+            "zone_id":          z,
         })
 
-    # Capacity exceeded (from live pipeline)
+    # ── Capacity exceeded (from live YOLO pipeline) ───────────────────
     if store_metrics["system_telemetry"]["anomaly_flag"]:
         anomalies.append({
-            "anomaly_type": "CAPACITY_EXCEEDED",
-            "severity": "CRITICAL",
-            "description": "Store capacity threshold exceeded.",
+            "anomaly_type":     "CAPACITY_EXCEEDED",
+            "severity":         "CRITICAL",
+            "description":      "Store capacity threshold exceeded.",
             "suggested_action": "Redirect customers and increase floor staff.",
         })
 
@@ -361,12 +415,19 @@ def get_anomalies(store_id: str):
 @app.get("/stores/{store_id}/events")
 def get_events(store_id: str, limit: int = 50):
     evts = [e for e in events_db if e.get("store_id") == store_id]
-    return {"store_id": store_id, "total_events": len(evts), "events": evts[-limit:]}
+    return {
+        "store_id":     store_id,
+        "total_events": len(evts),
+        "events":       evts[-limit:],
+    }
 
 # ── GET /stores/{store_id}/zones ──────────────────────────────────────
 @app.get("/stores/{store_id}/zones")
 def get_zones(store_id: str):
-    evts = [e for e in events_db if e.get("store_id") == store_id and not e.get("is_staff", False)]
+    evts = [
+        e for e in events_db
+        if e.get("store_id") == store_id and not e.get("is_staff", False)
+    ]
     zone_data: dict = defaultdict(lambda: {"occupancy": 0, "dwell_times": []})
     for e in evts:
         z = e.get("zone_id")
@@ -379,11 +440,14 @@ def get_zones(store_id: str):
     zones = []
     for z, d in zone_data.items():
         dt = d["dwell_times"]
-        zones.append({"zone": z, "occupancy": d["occupancy"],
-                      "avg_dwell_seconds": round(sum(dt)/len(dt), 2) if dt else 0.0})
+        zones.append({
+            "zone":              z,
+            "occupancy":         d["occupancy"],
+            "avg_dwell_seconds": round(sum(dt) / len(dt), 2) if dt else 0.0,
+        })
     return {"store_id": store_id, "zones": zones}
 
-# ── AI Insights ───────────────────────────────────────────────────────
+# ── POST /api/v1/ai/insights ──────────────────────────────────────────
 class InsightRequest(BaseModel):
     count:         int
     vibe:          str
@@ -401,13 +465,20 @@ def get_ai_insights(req: InsightRequest):
     try:
         import anthropic
         client = anthropic.Anthropic(api_key=api_key)
-        prompt = f"""You are VibeSense AI, a retail analytics assistant for a Purplle beauty store.
-CURRENT DATA: Occupancy={req.count}, Vibe={req.vibe}, Music={req.music},
-Alerts={', '.join(req.alerts) or 'None'}, AvgOccupancy={req.avg_occupancy}, Time={req.timestamp}
-Provide: 1.**Situation Summary** 2.**Staff Recommendation** 3.**Revenue Opportunity** 4.**Music & Ambiance** 5.**30-Min Forecast**
-Be specific, reference numbers."""
-        msg = client.messages.create(model="claude-haiku-4-5-20251001", max_tokens=800,
-                                     messages=[{"role": "user", "content": prompt}])
+        prompt = (
+            f"You are VibeSense AI, a retail analytics assistant for a Purplle beauty store.\n"
+            f"CURRENT DATA: Occupancy={req.count}, Vibe={req.vibe}, Music={req.music}, "
+            f"Alerts={', '.join(req.alerts) or 'None'}, AvgOccupancy={req.avg_occupancy}, "
+            f"Time={req.timestamp}\n"
+            f"Provide: 1.**Situation Summary** 2.**Staff Recommendation** "
+            f"3.**Revenue Opportunity** 4.**Music & Ambiance** 5.**30-Min Forecast**\n"
+            f"Be specific, reference numbers."
+        )
+        msg = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=800,
+            messages=[{"role": "user", "content": prompt}],
+        )
         return {"insight": msg.content[0].text}
     except anthropic.AuthenticationError:
         raise HTTPException(status_code=401, detail="Invalid API Key")
@@ -418,10 +489,17 @@ Be specific, reference numbers."""
 
 # ── Helper ────────────────────────────────────────────────────────────
 def _within_minutes(ts, minutes: int) -> bool:
+    """
+    FIX: Added naive-datetime guard.
+    If a timestamp was stored without tzinfo (e.g. from old datetime.utcnow()
+    calls in the AI pipeline), we treat it as UTC instead of raising TypeError.
+    """
     if not ts:
         return False
     try:
         dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+        if dt.tzinfo is None:                          # defensive guard
+            dt = dt.replace(tzinfo=timezone.utc)
         return (datetime.now(timezone.utc) - dt).total_seconds() < minutes * 60
     except Exception:
         return False
