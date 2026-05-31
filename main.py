@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from typing import List
 import anthropic
 import uvicorn
+from event_store import events_db
 
 # Local modules
 from core_ai import StoreMonitor
@@ -33,11 +34,6 @@ app.mount("/static", StaticFiles(directory="."), name="static")
 ai_client = anthropic.Anthropic(
     api_key=os.environ.get("ANTHROPIC_API_KEY")
 )
-
-# ── Event Storage ────────────────────────────────────────────────────
-
-events_db = []
-seen_events = set()
 
 # ── AI Pipeline ──────────────────────────────────────────────────────
 
