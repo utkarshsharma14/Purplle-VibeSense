@@ -3,6 +3,7 @@ from uuid import uuid4
 
 events_db = []
 
+
 def add_event(
     store_id,
     visitor_id,
@@ -24,5 +25,8 @@ def add_event(
     }
 
     events_db.append(event)
+
+    print(f"EVENT CREATED: {event_type}")
+    print(f"TOTAL EVENTS: {len(events_db)}")
 
     return event
