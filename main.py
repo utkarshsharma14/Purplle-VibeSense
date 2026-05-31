@@ -12,6 +12,7 @@ import uvicorn
 # Local modules
 from core_ai import StoreMonitor
 from vibe_engine import store_metrics
+from models import Event
 
 # ── App ──────────────────────────────────────────────────────────────
 app = FastAPI(title="VibeSense AI — Retail Intelligence API")
@@ -24,27 +25,44 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve static files (store.mp4, images, etc.)
+# Serve static files
 app.mount("/static", StaticFiles(directory="."), name="static")
 
-# Anthropic client — reads ANTHROPIC_API_KEY from environment
-ai_client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+# Anthropic client
+ai_client = anthropic.Anthropic(
+    api_key=os.environ.get("ANTHROPIC_API_KEY")
+)
 
+# ── Event Storage ────────────────────────────────────────────────────
 
-# ── AI Pipeline ───────────────────────────────────────────────────────
+events_db = []
+seen_events = set()
+
+# ── AI Pipeline ──────────────────────────────────────────────────────
+
 def run_ai_pipeline():
     monitor = StoreMonitor("store.mp4")
     monitor.start_monitoring()
 
+
 @app.on_event("startup")
 def startup_event():
-    threading.Thread(target=run_ai_pipeline, daemon=True).start()
+    threading.Thread(
+        target=run_ai_pipeline,
+        daemon=True
+    ).start()
 
 
-# ── Routes ────────────────────────────────────────────────────────────
+# ── Routes ───────────────────────────────────────────────────────────
+
 @app.get("/", response_class=HTMLResponse)
 def read_root():
-    file_path = os.path.join(os.path.dirname(__file__), "templates", "index.html")
+    file_path = os.path.join(
+        os.path.dirname(__file__),
+        "templates",
+        "index.html"
+    )
+
     with open(file_path, "r") as f:
         return HTMLResponse(content=f.read())
 
@@ -52,76 +70,152 @@ def read_root():
 @app.get("/api/v1/store/vibe")
 def get_store_vibe():
     return {
-        "current_occupancy": store_metrics["current_count"],
-        "store_vibe":        store_metrics["vibe"],
-        "ambient_music":     store_metrics["ambient_music"],
-        "realtime_alerts":   store_metrics["realtime_alerts"][-5:],
+        "current_occupancy":
+            store_metrics["current_count"],
+
+        "store_vibe":
+            store_metrics["vibe"],
+
+        "ambient_music":
+            store_metrics["ambient_music"],
+
+        "realtime_alerts":
+            store_metrics["realtime_alerts"][-5:]
     }
 
 
-# ── AI Insights ───────────────────────────────────────────────────────
+# ── Event Ingestion API ──────────────────────────────────────────────
+
+@app.post("/events/ingest")
+def ingest_events(events: list[Event]):
+
+    inserted = 0
+
+    for event in events:
+
+        if event.event_id in seen_events:
+            continue
+
+        seen_events.add(event.event_id)
+
+        events_db.append(
+            event.model_dump()
+        )
+
+        inserted += 1
+
+    return {
+        "status": "success",
+        "inserted": inserted,
+        "total_events": len(events_db)
+    }
+
+
+# ── Health API ───────────────────────────────────────────────────────
+
+@app.get("/health")
+def health():
+
+    return {
+        "status": "healthy",
+
+        "service":
+            "VibeSense AI",
+
+        "current_occupancy":
+            store_metrics["current_count"],
+
+        "store_vibe":
+            store_metrics["vibe"],
+
+        "alerts_count":
+            len(store_metrics["realtime_alerts"]),
+
+        "events_count":
+            len(events_db),
+
+        "last_inference":
+            store_metrics["system_telemetry"]["last_inference_timestamp"],
+
+        "anomaly":
+            store_metrics["system_telemetry"]["anomaly_flag"]
+    }
+
+
+# ── AI Insights ──────────────────────────────────────────────────────
+
 class InsightRequest(BaseModel):
-    count:         int
-    vibe:          str
-    music:         str
-    alerts:        List[str] = []
-    avg_occupancy: int       = 0
-    dominant_vibe: str       = ""
-    timestamp:     str       = ""
+    count: int
+    vibe: str
+    music: str
+    alerts: List[str] = []
+    avg_occupancy: int = 0
+    dominant_vibe: str = ""
+    timestamp: str = ""
 
 
 @app.post("/api/v1/ai/insights")
 def get_ai_insights(req: InsightRequest):
+
     api_key = os.environ.get("ANTHROPIC_API_KEY")
+
     if not api_key:
         raise HTTPException(
             status_code=500,
-            detail="ANTHROPIC_API_KEY not set. Add it in Render → Environment Variables."
+            detail="ANTHROPIC_API_KEY not set"
         )
 
-    prompt = f"""You are VibeSense AI, an intelligent retail analytics assistant for a Purplle beauty store. Analyze this real-time store data and provide actionable insights.
+    prompt = f"""
+You are VibeSense AI, an intelligent retail analytics assistant.
 
 CURRENT STORE DATA:
-- Live Occupancy: {req.count} people
+- Live Occupancy: {req.count}
 - Store Vibe: {req.vibe}
 - Ambient Music: {req.music}
 - Active Alerts: {', '.join(req.alerts) if req.alerts else 'None'}
-- Session Avg Occupancy: {req.avg_occupancy} people
-- Dominant Vibe (recent): {req.dominant_vibe or req.vibe}
+- Session Avg Occupancy: {req.avg_occupancy}
+- Dominant Vibe: {req.dominant_vibe or req.vibe}
 - Time: {req.timestamp}
 
-Provide a concise analysis in EXACTLY this format (use ** for bold):
-1. **Situation Summary** — (2 sentences describing current store state and atmosphere)
-2. **Staff Recommendation** — (1 specific, actionable staffing suggestion)
-3. **Revenue Opportunity** — (1 concrete tip to increase sales right now)
-4. **Music & Ambiance** — (1 specific music/atmosphere recommendation)
-5. **30-Min Forecast** — (brief prediction of what will happen next)
+Provide:
 
-Rules:
-- Reference actual numbers from the data
-- Be specific and direct, not generic
-- Each point must be 1-2 sentences maximum
-- Focus on what a store manager should DO right now"""
+1. Situation Summary
+2. Staff Recommendation
+3. Revenue Opportunity
+4. Music & Ambiance
+5. 30-Min Forecast
+"""
 
     try:
+
         message = ai_client.messages.create(
-            model="claude-haiku-4-5-20251001",  # Fast + cheap for real-time insights
+            model="claude-haiku-4-5-20251001",
             max_tokens=800,
-            messages=[{"role": "user", "content": prompt}]
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
         )
-        insight_text = message.content[0].text
-        return {"insight": insight_text}
+
+        return {
+            "insight":
+                message.content[0].text
+        }
 
     except anthropic.AuthenticationError:
         raise HTTPException(
             status_code=401,
-            detail="Invalid ANTHROPIC_API_KEY. Check your Render environment variables."
+            detail="Invalid API Key"
         )
+
     except anthropic.RateLimitError:
         raise HTTPException(
             status_code=429,
-            detail="Anthropic rate limit hit. Please wait a moment and try again."
+            detail="Rate limit exceeded"
         )
+
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -129,7 +223,16 @@ Rules:
         )
 
 
-# ── Entry Point ───────────────────────────────────────────────────────
+# ── Entry Point ──────────────────────────────────────────────────────
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+
+    port = int(
+        os.environ.get("PORT", 10000)
+    )
+
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port
+    )
