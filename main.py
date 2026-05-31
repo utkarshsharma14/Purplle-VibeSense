@@ -222,7 +222,96 @@ Provide:
             detail=f"AI service error: {str(e)}"
         )
 
+@app.get("/stores/{store_id}/metrics")
+def get_store_metrics(store_id: str):
 
+    store_events = [
+        e for e in events_db
+        if e["store_id"] == store_id
+    ]
+
+    unique_visitors = len(
+        set(e["visitor_id"] for e in store_events)
+    )
+
+    entry_events = [
+        e for e in store_events
+        if e["event_type"] == "ENTRY"
+    ]
+
+    exit_events = [
+        e for e in store_events
+        if e["event_type"] == "EXIT"
+    ]
+
+    zone_dwell_events = [
+        e for e in store_events
+        if e["event_type"] == "ZONE_DWELL"
+    ]
+
+    avg_dwell = 0
+
+    if zone_dwell_events:
+        avg_dwell = sum(
+            e["dwell_ms"]
+            for e in zone_dwell_events
+        ) / len(zone_dwell_events)
+
+    return {
+        "store_id": store_id,
+        "unique_visitors": unique_visitors,
+        "entries": len(entry_events),
+        "exits": len(exit_events),
+        "avg_dwell_ms": avg_dwell,
+        "current_occupancy": store_metrics["current_count"],
+        "store_vibe": store_metrics["vibe"],
+        "alerts": store_metrics["realtime_alerts"]
+    }
+
+
+@app.get("/stores/{store_id}/funnel")
+def get_funnel(store_id: str):
+
+    store_events = [
+        e for e in events_db
+        if e["store_id"] == store_id
+    ]
+
+    entries = len([
+        e for e in store_events
+        if e["event_type"] == "ENTRY"
+    ])
+
+    zone_visits = len([
+        e for e in store_events
+        if e["event_type"] == "ZONE_ENTER"
+    ])
+
+    return {
+        "store_id": store_id,
+        "entry": entries,
+        "zone_visit": zone_visits,
+        "billing": int(entries * 0.6),
+        "purchase": int(entries * 0.4)
+    }
+
+
+@app.get("/stores/{store_id}/anomalies")
+def get_anomalies(store_id: str):
+
+    return {
+        "store_id": store_id,
+        "anomaly_detected":
+            store_metrics["system_telemetry"]["anomaly_flag"],
+
+        "alerts":
+            store_metrics["realtime_alerts"],
+
+        "severity":
+            "HIGH"
+            if store_metrics["system_telemetry"]["anomaly_flag"]
+            else "NORMAL"
+    }
 # ── Entry Point ──────────────────────────────────────────────────────
 
 if __name__ == "__main__":
