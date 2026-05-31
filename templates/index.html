@@ -624,68 +624,8 @@ input[type=range] {
   to   { opacity:1; transform: translateY(0); }
 }
 
-/* ===================== AI INSIGHTS ===================== */
-.ai-panel { padding: 24px; }
-.ai-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
-.ai-title-wrap {}
-.ai-badge {
-  display:inline-flex; align-items:center; gap:6px;
-  padding:4px 12px; border-radius:100px;
-  background:var(--purpleDim); border:1px solid rgba(176,138,255,0.25);
-  font-family:var(--font-mono); font-size:10px; color:var(--purple);
-  letter-spacing:1px; font-weight:500;
-}
-.ai-generate-btn {
-  display:flex; align-items:center; gap:7px;
-  padding:9px 20px; border-radius:var(--radius-sm);
-  background:linear-gradient(135deg,var(--purple),var(--gold));
-  border:none; color:#0a0808;
-  font-family:var(--font-sans); font-size:13px; font-weight:700;
-  cursor:pointer; transition:all var(--transition);
-  box-shadow:0 4px 20px rgba(176,138,255,0.25);
-}
-.ai-generate-btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(176,138,255,0.35); }
-.ai-generate-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
-.ai-output {
-  min-height:120px;
-  padding:18px; border-radius:var(--radius-md);
-  background:var(--surface2); border:1px solid var(--border);
-  font-size:13px; line-height:1.8; color:var(--text);
-  transition:all var(--transition);
-  position:relative; overflow:hidden;
-}
-.ai-output.loading::after {
-  content:'';
-  position:absolute; bottom:0; left:0; right:0; height:2px;
-  background:linear-gradient(90deg, transparent, var(--purple), var(--gold), transparent);
-  animation:aiScan 1.5s ease infinite;
-}
-@keyframes aiScan { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
-.ai-placeholder { color:var(--text3); font-family:var(--font-mono); font-size:12px; }
-.ai-insight-grid {
-  display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px;
-}
-.ai-insight-chip {
-  padding:10px 14px; border-radius:var(--radius-sm);
-  background:var(--surface); border:1px solid var(--border);
-  font-size:12px; line-height:1.5;
-  transition:all var(--transition);
-}
-.ai-insight-chip:hover { border-color:var(--borderHov); }
-.ai-chip-icon { font-size:16px; margin-bottom:4px; }
-.ai-chip-label { font-size:10px; color:var(--text3); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:1px; }
-.ai-chip-val { font-size:13px; font-weight:600; margin-top:2px; }
-.ai-history { margin-top:14px; }
-.ai-history-title { font-size:11px; color:var(--text3); font-family:var(--font-mono); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
-.ai-history-list { display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto; scrollbar-width:none; }
-.ai-history-item {
-  padding:9px 13px; border-radius:var(--radius-sm);
-  background:var(--surface); border:1px solid var(--border);
-  font-size:12px; color:var(--text2); line-height:1.5;
-  cursor:pointer; transition:all var(--transition);
-}
-.ai-history-item:hover { border-color:var(--purple); color:var(--text); }
-.ai-history-ts { font-family:var(--font-mono); font-size:10px; color:var(--text3); margin-top:2px; }
+
+/* ===================== HEATMAP ===================== */
 
 /* ===================== HEATMAP ===================== */
 .heatmap-panel { padding:24px; }
@@ -1150,31 +1090,9 @@ input[type=range] {
   </div>
 
   <!-- SECTION DIVIDER -->
-  <div class="section-divider"><div class="divider-line"></div><div class="divider-label">AI · Analytics · Export · Alerts</div><div class="divider-line"></div></div>
+  <div class="section-divider"><div class="divider-line"></div><div class="divider-label">Analytics · Export · Alerts</div><div class="divider-line"></div></div>
 
-  <!-- AI INSIGHTS PANEL -->
-  <div class="card ai-panel" style="animation:fadeUp 0.6s 0.45s ease both;">
-    <div class="ai-header">
-      <div>
-        <div class="section-label">Powered by Claude</div>
-        <div class="section-title" style="margin-bottom:0;">AI Store Insights</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div class="ai-badge">✦ CLAUDE AI</div>
-        <button class="ai-generate-btn" id="aiBtn" onclick="generateInsights()">
-          ✦ Generate Insights
-        </button>
-      </div>
-    </div>
-    <div class="ai-output" id="aiOutput">
-      <div class="ai-placeholder">Click "Generate Insights" to get AI-powered recommendations based on current store data — occupancy trends, vibe analysis, staff suggestions, and revenue optimization tips.</div>
-    </div>
-    <div class="ai-insight-grid" id="aiChips"></div>
-    <div class="ai-history" id="aiHistory" style="display:none;">
-      <div class="ai-history-title">Previous Insights</div>
-      <div class="ai-history-list" id="aiHistoryList"></div>
-    </div>
-  </div>
+
 
   <!-- HEATMAP + EXPORT ROW -->
   <div style="display:grid;grid-template-columns:1fr 380px;gap:16px;animation:fadeUp 0.6s 0.5s ease both;">
@@ -1878,88 +1796,6 @@ async function fetchData() {
   }
 }
 
-// ===================== AI INSIGHTS (Claude API) =====================
-let aiHistory = [];
-async function generateInsights() {
-  const btn = document.getElementById('aiBtn');
-  const out  = document.getElementById('aiOutput');
-  btn.disabled = true;
-  btn.textContent = '⟳ Analyzing...';
-  out.classList.add('loading');
-  out.innerHTML = '<div class="ai-placeholder" style="color:var(--text2)">✦ Claude is analyzing your store data...</div>';
-
-  const snap = window._lastFetchResult || {};
-  const logSample = dataLog.slice(-20);
-  const avgOcc = logSample.length ? Math.round(logSample.reduce((a,d)=>a+(d.count||0),0)/logSample.length) : 0;
-  const vibes  = logSample.map(d=>d.vibe).filter(Boolean);
-  const dominantVibe = vibes.sort((a,b)=>vibes.filter(v=>v===b).length-vibes.filter(v=>v===a).length)[0]||'Unknown';
-
-
-  try {
-    const res = await fetch('/api/v1/ai/insights', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        count:         snap.count   ?? 0,
-        vibe:          snap.vibe    ?? '',
-        music:         snap.music   ?? '',
-        alerts:        snap.alerts  ?? [],
-        avg_occupancy: avgOcc,
-        dominant_vibe: dominantVibe,
-        timestamp:     snap.ts ?? new Date().toLocaleTimeString()
-      })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(()=>({}));
-      throw new Error(err.detail || `Server error ${res.status}`);
-    }
-    const data = await res.json();
-    const text = data.insight || 'No response received.';
-
-    // Render with markdown-lite
-    const html = text
-      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-      .replace(/^(\d+\.\s)/gm,'<br><span style="color:var(--gold);font-weight:700">$1</span>')
-      .replace(/\n/g,'<br>');
-
-    out.classList.remove('loading');
-    out.innerHTML = `<div style="line-height:1.9;">${html}</div>`;
-
-    // Quick insight chips
-    const chips = [
-      {icon:'👥', label:'Occupancy',  val: snap.count>10?'Critical':snap.count>5?'Moderate':'Low'},
-      {icon:'🎯', label:'Action',     val: snap.count>10?'Add Staff':'Monitor'},
-      {icon:'📈', label:'Est. Sales', val: `₹${(2000+((snap.count||0)*800)).toLocaleString('en-IN')}`},
-    ];
-    document.getElementById('aiChips').innerHTML = chips.map(c=>`
-      <div class="ai-insight-chip">
-        <div class="ai-chip-icon">${c.icon}</div>
-        <div class="ai-chip-label">${c.label}</div>
-        <div class="ai-chip-val">${c.val}</div>
-      </div>`).join('');
-
-    // Save to history
-    const ts = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-    aiHistory.unshift({text: text.substring(0,120)+'…', ts});
-    if(aiHistory.length>5) aiHistory.pop();
-    const hist = document.getElementById('aiHistory');
-    hist.style.display='block';
-    document.getElementById('aiHistoryList').innerHTML = aiHistory.map(h=>`
-      <div class="ai-history-item" onclick="document.getElementById('aiOutput').innerHTML='<div style=line-height:1.9>${h.text.replace(/'/g,"&#39;")}</div>'">
-        <div>${h.text}</div>
-        <div class="ai-history-ts">${h.ts}</div>
-      </div>`).join('');
-
-    if(notifPrefs.ai) showNotif('🤖','AI Insight Ready','New store recommendations available',4000,'var(--purple)');
-    tryBrowserPush('VibeSense AI','New store insights are ready to review');
-
-  } catch(e) {
-    out.classList.remove('loading');
-    out.innerHTML = `<div style="color:var(--red);font-family:var(--font-mono);font-size:12px;">⚠ Could not connect to Claude API. Check your API key or network.<br><small style="color:var(--text3)">${e.message}</small></div>`;
-  }
-  btn.disabled=false;
-  btn.textContent='✦ Generate Insights';
-}
 
 // ===================== EXPORT =====================
 let exportCache = [];
