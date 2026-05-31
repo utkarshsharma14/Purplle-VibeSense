@@ -13,6 +13,7 @@ import uvicorn
 from core_ai import StoreMonitor
 from vibe_engine import store_metrics
 from models import Event
+from event_store import events_db
 
 # ── App ──────────────────────────────────────────────────────────────
 app = FastAPI(title="VibeSense AI — Retail Intelligence API")
@@ -311,6 +312,65 @@ def get_anomalies(store_id: str):
             "HIGH"
             if store_metrics["system_telemetry"]["anomaly_flag"]
             else "NORMAL"
+    }
+@app.get("/stores/{store_id}/events")
+def get_events(store_id: str):
+
+    store_events = [
+        e for e in events_db
+        if e["store_id"] == store_id
+    ]
+
+    return {
+        "store_id": store_id,
+        "total_events": len(store_events),
+        "events": store_events[-50:]
+    }
+
+
+@app.get("/stores/{store_id}/heatmap")
+def get_heatmap(store_id: str):
+
+    return {
+        "store_id": store_id,
+
+        "zones": {
+            "entrance": 12,
+            "checkout": 18,
+            "cosmetics": 25,
+            "skincare": 15,
+            "haircare": 10
+        }
+    }
+
+
+@app.get("/stores/{store_id}/zones")
+def get_zones(store_id: str):
+
+    return {
+        "store_id": store_id,
+
+        "zones": [
+
+            {
+                "zone": "entrance",
+                "occupancy": 12,
+                "avg_dwell_seconds": 20
+            },
+
+            {
+                "zone": "checkout",
+                "occupancy": 18,
+                "avg_dwell_seconds": 60
+            },
+
+            {
+                "zone": "cosmetics",
+                "occupancy": 25,
+                "avg_dwell_seconds": 95
+            }
+
+        ]
     }
 # ── Entry Point ──────────────────────────────────────────────────────
 
