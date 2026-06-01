@@ -289,7 +289,7 @@ class StoreMonitor:
                                     zd["last_dwell_emit"] = now
 
                                 # ── BILLING_QUEUE_JOIN ────────────────
-                                if zone == "BILLING" and dwell_ms > 5000:
+                                if zone == "BILLING" and dwell_ms > 5000 and not zd.get("billing_joined", False):
                                     self.vibe_engine.emit_event(
                                         event_type="BILLING_QUEUE_JOIN",
                                         visitor_id=visitor_id,
@@ -297,6 +297,7 @@ class StoreMonitor:
                                         is_staff=is_staff,
                                         confidence=round(conf, 3),
                                     )
+                                    zd["billing_joined"] = True
 
                         track_ids.append(tid)
                         boxes_list.append(box)

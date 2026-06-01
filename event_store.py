@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -10,7 +11,7 @@ def add_event(
     store_id: str,
     visitor_id: str,
     event_type: str,
-    zone_id: str | None = None,
+    zone_id: Optional[str] = None,
     dwell_ms: int = 0,
     is_staff: bool = False,
     confidence: float = 0.95,
