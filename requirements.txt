@@ -2,7 +2,6 @@ fastapi
 uvicorn[standard]
 gunicorn
 opencv-python-headless
-ultralytics
 anthropic
 numpy
 pydantic
